@@ -1,0 +1,7 @@
+requests
+typing-extensions
+
+[dev]
+pytest
+black
+mypy

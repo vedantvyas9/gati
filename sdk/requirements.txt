@@ -1,0 +1,5 @@
+requests>=2.31.0
+
+# Tokenization support for estimating costs
+tiktoken>=0.5.1
+

@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+setup.py
+gati/__init__.py
+gati/exceptions.py
+gati/observe.py
+gati/version.py
+gati.egg-info/PKG-INFO
+gati.egg-info/SOURCES.txt
+gati.egg-info/dependency_links.txt
+gati.egg-info/requires.txt
+gati.egg-info/top_level.txt

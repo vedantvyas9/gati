@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gati"
+version = "0.1.0"
+description = "SDK for tracking AI agent executions (LLM calls, tool usage, state) and sending events to a local backend"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests",
+    "typing-extensions",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "mypy",
+]
+
+[tool.setuptools]
+packages = ["gati"]
+
+[tool.setuptools.package-data]
+gati = ["py.typed"]
+
+
+
+
+
+

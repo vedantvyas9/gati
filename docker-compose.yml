@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: gati_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gati_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gati_password}
+      POSTGRES_DB: ${POSTGRES_DB:-gati_db}
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gati_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gati_network
+
+  # FastAPI Backend (Development)
+  backend:
+    build:
+      context: ./backend
+      target: development
+    container_name: gati_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-gati_user}:${POSTGRES_PASSWORD:-gati_password}@postgres:5432/${POSTGRES_DB:-gati_db}
+      DEBUG: "true"
+      ENVIRONMENT: development
+      CORS_ORIGINS: "http://localhost:3000,http://localhost"
+      API_HOST: "0.0.0.0"
+      API_PORT: "8000"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gati_network
+
+  # React Dashboard (Development with Vite)
+  dashboard:
+    build:
+      context: ./dashboard
+      target: development
+    container_name: gati_dashboard
+    environment:
+      VITE_API_BASE_URL: /api
+      NODE_ENV: development
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - gati_network
+    command: npm run dev -- --host
+
+  # Nginx reverse proxy and static file server (Production-like)
+  nginx:
+    image: nginx:alpine
+    container_name: gati_nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./dashboard/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - dashboard
+    networks:
+      - gati_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  gati_network:
+    driver: bridge

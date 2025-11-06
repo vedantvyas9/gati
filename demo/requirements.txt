@@ -1,0 +1,27 @@
+# Requirements for all three demo scripts
+# Install with: pip install -r requirements.txt
+
+# Common dependencies
+python-dotenv>=1.0.0
+
+# OpenAI API (used by all three scripts)
+openai>=1.0.0
+
+# LangChain dependencies (for langchain_research_agent.py)
+langchain>=0.1.0
+langchain-openai>=0.1.0
+langchain-core>=0.1.0
+langchain-community>=0.0.20
+
+# LangGraph dependencies (for langgraph_workflow_agent.py)
+langgraph>=0.0.20
+
+# GATI SDK (for custom_python_trading_agent.py)
+# Install from local SDK:
+# cd ../sdk && pip install -e .
+# OR if you have it published:
+# gati>=0.1.0
+
+# Optional: If running the GATI backend locally
+requests>=2.31.0
+tiktoken>=0.5.1
