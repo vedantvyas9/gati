@@ -2,6 +2,8 @@
 
 Serverless telemetry collection for GATI SDK.
 
+---
+
 ## Quick Deploy
 
 ### 1. Install Vercel CLI
@@ -121,6 +123,8 @@ observe.init(
 )
 ```
 
+---
+
 ## Monitoring
 
 ### View Logs
@@ -147,6 +151,8 @@ Vercel dashboard shows:
 - Error rates
 - Database queries
 
+---
+
 ## Costs
 
 **Vercel Free Tier:**
@@ -163,6 +169,8 @@ Vercel dashboard shows:
 **If you exceed free tier:**
 - Pro plan: $20/month
 - Includes 1TB bandwidth, 1M requests
+
+---
 
 ## Security
 
@@ -206,6 +214,8 @@ Already handled in `api/metrics.js`, but if needed:
 response.setHeader('Access-Control-Allow-Origin', 'https://your-domain.com');
 ```
 
+---
+
 ## Alternative: Vercel KV (Redis)
 
 If you prefer Redis over Postgres:
@@ -219,6 +229,8 @@ import { kv } from '@vercel/kv';
 await kv.set(`metrics:${installation_id}`, data);
 ```
 
+---
+
 ## Production Tips
 
 1. **Set up alerts** in Vercel dashboard
@@ -226,6 +238,8 @@ await kv.set(`metrics:${installation_id}`, data);
 3. **Back up database** periodically
 4. **Rotate admin token** every 6 months
 5. **Set up custom domain** (optional)
+
+---
 
 ## Support
 

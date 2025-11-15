@@ -2,14 +2,19 @@
 
 Modern React-based web interface for visualizing and exploring AI agent traces.
 
+---
+
 ## Overview
 
 The dashboard provides a visual interface for:
+
 - Browsing all tracked agents and their statistics
 - Viewing agent execution runs with detailed timelines
 - Exploring hierarchical event traces
 - Analyzing costs, token usage, and performance metrics
 - Debugging agent behavior and errors
+
+---
 
 ## Features
 
@@ -22,6 +27,8 @@ The dashboard provides a visual interface for:
 - **Dark Mode** - Modern dark theme optimized for readability
 - **Responsive Design** - Works on desktop and tablet devices
 
+---
+
 ## Tech Stack
 
 - **React 18** - UI framework
@@ -32,6 +39,8 @@ The dashboard provides a visual interface for:
 - **Recharts** - Data visualization charts
 - **ReactFlow** - Interactive execution graphs
 - **Axios** - HTTP client for backend API
+
+---
 
 ## Installation
 
@@ -61,6 +70,8 @@ npm run build
 npm run preview
 ```
 
+---
+
 ## Configuration
 
 ### Environment Variables
@@ -74,6 +85,8 @@ VITE_BACKEND_URL=http://localhost:8000
 # Port for development server
 PORT=3000
 ```
+
+---
 
 ## Project Structure
 
@@ -111,6 +124,8 @@ dashboard/
 └── package.json        # Dependencies
 ```
 
+---
+
 ## API Integration
 
 The dashboard communicates with the GATI backend via REST API.
@@ -123,6 +138,8 @@ The dashboard communicates with the GATI backend via REST API.
 - `GET /api/runs/{run_id}/timeline` - Get event timeline
 - `GET /api/runs/{run_id}/trace` - Get execution tree
 - `GET /api/metrics/summary` - Global metrics
+
+---
 
 ## Development
 
@@ -146,6 +163,8 @@ npm run build
 ```bash
 npx tsc --noEmit
 ```
+
+---
 
 ## Deployment
 
@@ -174,6 +193,8 @@ Deploy `dist/` folder to:
 - **GitHub Pages** - Push to gh-pages branch
 - **AWS S3** - Upload to bucket
 
+---
+
 ## Troubleshooting
 
 ### Backend Connection Issues
@@ -194,12 +215,16 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
+---
+
 ## Browser Support
 
 - Chrome/Edge: Latest 2 versions
 - Firefox: Latest 2 versions
 - Safari: Latest 2 versions
 - Mobile: iOS 12+, Android 8+
+
+---
 
 ## License
 

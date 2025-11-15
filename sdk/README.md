@@ -2,9 +2,12 @@
 
 Python instrumentation library for tracking AI agent executions with minimal code changes.
 
+---
+
 ## Overview
 
 The GATI SDK automatically instruments your AI agent code to capture:
+
 - LLM calls (prompts, completions, models, costs)
 - Tool executions (inputs, outputs, durations)
 - Agent state transitions
@@ -12,6 +15,8 @@ The GATI SDK automatically instruments your AI agent code to capture:
 - Token usage and API costs
 
 All data is sent to a local backend for visualization and analysis.
+
+---
 
 ## Installation
 
@@ -136,6 +141,8 @@ What happens internally:
 5. Enables auto-injection for LangChain (if requested)
 6. Instruments LangGraph (if available)
 
+---
+
 ### 2. **Event System**
 
 **File:** `gati/core/event.py`
@@ -174,6 +181,8 @@ class Event:
 5. **Buffering:** Added to `EventBuffer`
 6. **Batching:** Grouped with other events
 7. **Transmission:** Sent to backend in batch
+
+---
 
 ### 3. **Context Manager**
 
@@ -253,6 +262,8 @@ AgentStartEvent (id: abc123)
 │   └── LLMCallEvent (parent: tool_event_id)
 └── AgentEndEvent (parent: abc123)
 ```
+
+---
 
 ### 4. **Event Buffer**
 
@@ -340,6 +351,8 @@ def _flush_locked(self):
 - **Non-blocking:** Background thread means user code never waits
 - **Reliability:** Lock ensures no events are lost to race conditions
 - **Graceful shutdown:** `stop()` method flushes remaining events before exit
+
+---
 
 ### 5. **HTTP Client**
 
@@ -799,6 +812,8 @@ From LangChain callbacks, we capture:
 - **Tool names** - from tool object
 - **Tool inputs/outputs** - serialized to JSON-safe format
 
+---
+
 ### LangGraph Instrumentation
 
 **File:** `gati/instrumentation/langgraph.py`
@@ -1074,6 +1089,8 @@ AgentStartEvent (graph_run_id)
 │   └── LLMCallEvent (model: "gpt-4")   # If node uses LLM
 └── AgentEndEvent (graph_run_id)
 ```
+
+---
 
 ### Custom Python Instrumentation
 

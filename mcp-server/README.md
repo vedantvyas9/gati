@@ -2,9 +2,13 @@
 
 Model Context Protocol (MCP) server for querying GATI traces directly from AI assistants like Claude Desktop and GitHub Copilot.
 
+---
+
 ## Overview
 
 The GATI MCP Server exposes your local trace data through a set of tools that AI assistants can use to help you analyze and understand your agent's behavior, costs, and performance.
+
+---
 
 ## Features
 
@@ -20,6 +24,8 @@ The GATI MCP Server exposes your local trace data through a set of tools that AI
 8. **search_events** - Search events by various criteria
 9. **get_cost_breakdown** - Analyze costs by LLM model
 10. **get_global_metrics** - Get global metrics across all agents
+
+---
 
 ## Quick Start (Docker Compose)
 
@@ -53,6 +59,8 @@ docker-compose up -d
 
 4. Start querying your traces!
 
+---
+
 ## Usage Examples
 
 ### With Claude Desktop
@@ -81,6 +89,8 @@ You: @gati compare the last 3 runs for my-agent
 Copilot: [Uses compare_runs tool]
 ```
 
+---
+
 ## Architecture
 
 ```
@@ -101,6 +111,8 @@ Docker Compose Stack:
 └─────────────────────────┘
 ```
 
+---
+
 ## Configuration
 
 The MCP server is configured via environment variables in docker-compose.yml:
@@ -111,6 +123,8 @@ environment:
   DATABASE_POOL_SIZE: 10
   DATABASE_POOL_TIMEOUT: 30000
 ```
+
+---
 
 ## Development
 
@@ -136,6 +150,8 @@ npm run dev
 ```bash
 npm run build
 ```
+
+---
 
 ## Troubleshooting
 
@@ -185,6 +201,8 @@ observe = Observe.init(
     agent_name="my-agent"
 )
 ```
+
+---
 
 ## License
 

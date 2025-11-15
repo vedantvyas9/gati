@@ -2,14 +2,19 @@
 
 FastAPI-based REST API server for receiving, storing, and serving AI agent trace data.
 
+---
+
 ## Overview
 
 The backend component is responsible for:
+
 - Receiving trace events from the GATI SDK via HTTP
 - Storing events in a local SQLite database (migrated from PostgreSQL)
 - Providing REST API endpoints for the dashboard and MCP server
 - Managing agent runs and event hierarchies
 - Calculating costs and token usage metrics
+
+---
 
 ## Architecture
 
@@ -52,6 +57,8 @@ The backend component is responsible for:
   │Dashboard │   │MCP Server│   │  CLI     │
   └──────────┘   └──────────┘   └──────────┘
 ```
+
+---
 
 ## Database Schema
 
@@ -99,6 +106,8 @@ CREATE INDEX idx_events_parent_id ON events(parent_event_id);
 CREATE INDEX idx_events_timestamp ON events(timestamp);
 ```
 
+---
+
 ## Installation
 
 ### Using Docker (Recommended)
@@ -123,6 +132,8 @@ alembic upgrade head
 # Start server
 uvicorn app.main:app --reload --port 8000
 ```
+
+---
 
 ## Configuration
 
@@ -150,6 +161,8 @@ ADMIN_TOKEN=your-secret-token-here
 # Logging
 LOG_LEVEL=INFO
 ```
+
+---
 
 ## API Endpoints
 
@@ -232,6 +245,8 @@ Get hierarchical execution trace.
 
 Get global metrics across all agents and runs.
 
+---
+
 ## Database Migrations
 
 ### Creating a Migration
@@ -256,6 +271,8 @@ alembic downgrade -1
 # Show current version
 alembic current
 ```
+
+---
 
 ## Development
 
@@ -306,6 +323,8 @@ uvicorn app.main:app --reload --port 8000
 LOG_LEVEL=DEBUG uvicorn app.main:app --reload
 ```
 
+---
+
 ## Performance
 
 ### Optimization Features
@@ -321,6 +340,8 @@ LOG_LEVEL=DEBUG uvicorn app.main:app --reload
 - **Event Ingestion**: ~5,000 events/second
 - **Query Response**: <50ms for most queries
 - **Database Size**: ~1KB per event
+
+---
 
 ## Troubleshooting
 
@@ -350,6 +371,8 @@ Add your frontend URL to CORS_ORIGINS:
 CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
+---
+
 ## Security
 
 ### Best Practices
@@ -359,6 +382,8 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 - Use HTTPS in production
 - Implement rate limiting in reverse proxy
 - Regular database backups
+
+---
 
 ## Backup & Restore
 
@@ -384,6 +409,8 @@ cp backend/gati.db.backup-20240115 backend/gati.db
 # Start backend
 docker-compose start backend
 ```
+
+---
 
 ## License
 
