@@ -18,32 +18,34 @@ depends_on = None
 def upgrade():
     """Add run_name column with unique constraint."""
 
-    # Step 1: Add run_name column to runs table (nullable initially)
-    op.add_column('runs', sa.Column('run_name', sa.String(255), nullable=True))
+    # For SQLite, we need to use batch_alter_table to modify columns
+    with op.batch_alter_table('runs') as batch_op:
+        # Step 1: Add run_name column to runs table (nullable initially)
+        batch_op.add_column(sa.Column('run_name', sa.String(255), nullable=True))
 
     # Step 2: Populate run_name for existing runs based on creation order per agent
+    # SQLite-compatible version using a subquery instead of CTE with UPDATE FROM
     op.execute("""
-        WITH numbered_runs AS (
-            SELECT
-                run_id,
-                agent_name,
-                ROW_NUMBER() OVER (PARTITION BY agent_name ORDER BY created_at) as run_number
-            FROM runs
-        )
         UPDATE runs
-        SET run_name = 'run ' || numbered_runs.run_number
-        FROM numbered_runs
-        WHERE runs.run_id = numbered_runs.run_id;
+        SET run_name = (
+            SELECT 'run ' || COUNT(*)
+            FROM runs r2
+            WHERE r2.agent_name = runs.agent_name
+            AND r2.created_at <= runs.created_at
+        )
+        WHERE run_name IS NULL;
     """)
 
-    # Step 3: Make run_name NOT NULL after populating data
-    op.alter_column('runs', 'run_name', nullable=False)
+    # Step 3-5: Use batch_alter_table for SQLite compatibility
+    with op.batch_alter_table('runs') as batch_op:
+        # Make run_name NOT NULL
+        batch_op.alter_column('run_name', nullable=False, existing_type=sa.String(255))
 
-    # Step 4: Add unique constraint on (agent_name, run_name)
-    op.create_unique_constraint('uq_agent_run_name', 'runs', ['agent_name', 'run_name'])
+        # Add unique constraint on (agent_name, run_name)
+        batch_op.create_unique_constraint('uq_agent_run_name', ['agent_name', 'run_name'])
 
-    # Step 5: Create index on run_name for faster lookups
-    op.create_index('idx_run_name', 'runs', ['run_name'])
+        # Create index on run_name for faster lookups
+        batch_op.create_index('idx_run_name', ['run_name'])
 
 
 def downgrade():

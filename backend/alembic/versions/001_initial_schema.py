@@ -7,7 +7,6 @@ Create Date: 2024-11-04 00:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "001"
@@ -52,7 +51,7 @@ def upgrade() -> None:
         sa.Column("tokens_in", sa.Float(), nullable=True, server_default="0"),
         sa.Column("tokens_out", sa.Float(), nullable=True, server_default="0"),
         sa.Column("status", sa.String(20), nullable=True, server_default="active"),
-        sa.Column("metadata", postgresql.JSON(), nullable=True),
+        sa.Column("metadata", sa.JSON(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -86,7 +85,7 @@ def upgrade() -> None:
         sa.Column("agent_name", sa.String(255), nullable=False),
         sa.Column("event_type", sa.String(50), nullable=False),
         sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("data", postgresql.JSON(), nullable=False),
+        sa.Column("data", sa.JSON(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

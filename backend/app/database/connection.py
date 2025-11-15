@@ -27,19 +27,27 @@ def init_sync_db() -> None:
 
     settings = get_settings()
 
-    # Convert async PostgreSQL URL to sync URL if needed
+    # Convert async SQLite URL to sync URL if needed
     db_url = settings.database_url
-    if db_url.startswith("postgresql+asyncpg://"):
-        db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
+    if db_url.startswith("sqlite+aiosqlite://"):
+        db_url = db_url.replace("sqlite+aiosqlite://", "sqlite://")
 
-    _sync_engine = create_engine(
-        db_url,
-        pool_size=settings.database_pool_size,
-        max_overflow=settings.database_max_overflow,
-        pool_timeout=settings.database_pool_timeout,
-        pool_recycle=settings.database_pool_recycle,
-        echo=settings.debug,
-    )
+    # SQLite-specific engine configuration
+    if db_url.startswith("sqlite"):
+        _sync_engine = create_engine(
+            db_url,
+            echo=settings.debug,
+            connect_args={"check_same_thread": False},
+        )
+    else:
+        _sync_engine = create_engine(
+            db_url,
+            pool_size=settings.database_pool_size,
+            max_overflow=settings.database_max_overflow,
+            pool_timeout=settings.database_pool_timeout,
+            pool_recycle=settings.database_pool_recycle,
+            echo=settings.debug,
+        )
 
     _sync_session_factory = sessionmaker(
         bind=_sync_engine,
@@ -55,17 +63,26 @@ async def init_async_db() -> None:
     settings = get_settings()
 
     db_url = settings.database_url
-    if not db_url.startswith("postgresql+asyncpg://"):
-        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+    # Convert to async SQLite URL if needed
+    if db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
+        db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 
-    _async_engine = create_async_engine(
-        db_url,
-        pool_size=settings.database_pool_size,
-        max_overflow=settings.database_max_overflow,
-        pool_timeout=settings.database_pool_timeout,
-        pool_recycle=settings.database_pool_recycle,
-        echo=settings.debug,
-    )
+    # SQLite-specific async engine configuration
+    if db_url.startswith("sqlite+aiosqlite://"):
+        _async_engine = create_async_engine(
+            db_url,
+            echo=settings.debug,
+            connect_args={"check_same_thread": False},
+        )
+    else:
+        _async_engine = create_async_engine(
+            db_url,
+            pool_size=settings.database_pool_size,
+            max_overflow=settings.database_max_overflow,
+            pool_timeout=settings.database_pool_timeout,
+            pool_recycle=settings.database_pool_recycle,
+            echo=settings.debug,
+        )
 
     _async_session_factory = async_sessionmaker(
         bind=_async_engine,

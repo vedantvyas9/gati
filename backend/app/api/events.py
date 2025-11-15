@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.sqlite import insert
 
 from app.config import get_settings
 from app.database.connection import get_async_session
@@ -110,8 +110,8 @@ async def ingest_events(
         # Perform bulk insert
         if events_to_insert:
             stmt = insert(Event).values(events_to_insert)
-            # Use on_conflict_do_nothing for PostgreSQL to handle potential duplicates
-            stmt = stmt.on_conflict_do_nothing()
+            # Use on_conflict_do_nothing for SQLite to handle potential duplicates
+            stmt = stmt.on_conflict_do_nothing(index_elements=['event_id'])
             await session.execute(stmt)
             await session.commit()
 

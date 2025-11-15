@@ -1,7 +1,6 @@
 """Run database model for tracking agent execution runs."""
-from sqlalchemy import Column, String, Text, Float, Index, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, Text, Float, Index, ForeignKey, UniqueConstraint, JSON
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSON
 
 from app.models.base import Base, BaseModel
 

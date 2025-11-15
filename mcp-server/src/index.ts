@@ -32,9 +32,9 @@ async function main() {
   initializeDatabase(config);
 
   // Test database connection
-  const isConnected = await testConnection();
+  const isConnected = testConnection();
   if (!isConnected) {
-    console.error('[GATI MCP] Failed to connect to database. Please check your DATABASE_URL.');
+    console.error('[GATI MCP] Failed to connect to database. Please check your DATABASE_PATH.');
     process.exit(1);
   }
 
@@ -131,14 +131,14 @@ async function main() {
   process.on('SIGINT', async () => {
     console.error('[GATI MCP] Shutting down...');
     await shutdownTelemetry();
-    await closeDatabase();
+    closeDatabase();
     process.exit(0);
   });
 
   process.on('SIGTERM', async () => {
     console.error('[GATI MCP] Shutting down...');
     await shutdownTelemetry();
-    await closeDatabase();
+    closeDatabase();
     process.exit(0);
   });
 

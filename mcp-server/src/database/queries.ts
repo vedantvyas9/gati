@@ -1,7 +1,7 @@
 /**
- * Database queries for GATI traces
+ * Database queries for GATI traces (SQLite)
  */
-import { getPool } from './connection.js';
+import { getDatabase } from './connection.js';
 
 /**
  * Agent with statistics
@@ -13,7 +13,7 @@ export interface AgentStats {
   total_events: number;
   total_cost: number;
   avg_cost_per_run: number;
-  created_at: Date;
+  created_at: string;
 }
 
 /**
@@ -30,7 +30,7 @@ export interface RunDetails {
   tokens_in: number | null;
   tokens_out: number | null;
   metadata: any;
-  created_at: Date;
+  created_at: string;
   event_count: number;
 }
 
@@ -42,7 +42,7 @@ export interface Event {
   run_id: string;
   agent_name: string;
   event_type: string;
-  timestamp: Date;
+  timestamp: string;
   parent_event_id: string | null;
   previous_event_id: string | null;
   data: any;
@@ -51,7 +51,7 @@ export interface Event {
 /**
  * List all agents with statistics
  */
-export async function listAgents(): Promise<AgentStats[]> {
+export function listAgents(): AgentStats[] {
   const query = `
     SELECT
       a.name,
@@ -68,14 +68,13 @@ export async function listAgents(): Promise<AgentStats[]> {
     ORDER BY a.created_at DESC
   `;
 
-  const result = await getPool().query(query);
-  return result.rows;
+  return getDatabase().prepare(query).all() as AgentStats[];
 }
 
 /**
  * Get agent statistics
  */
-export async function getAgentStats(agentName: string): Promise<AgentStats | null> {
+export function getAgentStats(agentName: string): AgentStats | null {
   const query = `
     SELECT
       a.name,
@@ -88,22 +87,21 @@ export async function getAgentStats(agentName: string): Promise<AgentStats | nul
     FROM agents a
     LEFT JOIN runs r ON a.name = r.agent_name
     LEFT JOIN events e ON r.run_id = e.run_id
-    WHERE a.name = $1
+    WHERE a.name = ?
     GROUP BY a.name, a.description, a.created_at
   `;
 
-  const result = await getPool().query(query, [agentName]);
-  return result.rows[0] || null;
+  return getDatabase().prepare(query).get(agentName) as AgentStats | undefined || null;
 }
 
 /**
  * List runs for an agent
  */
-export async function listRuns(
+export function listRuns(
   agentName: string,
   limit: number = 20,
   offset: number = 0
-): Promise<RunDetails[]> {
+): RunDetails[] {
   const query = `
     SELECT
       r.run_id,
@@ -120,23 +118,28 @@ export async function listRuns(
       COUNT(e.event_id) as event_count
     FROM runs r
     LEFT JOIN events e ON r.run_id = e.run_id
-    WHERE r.agent_name = $1
+    WHERE r.agent_name = ?
     GROUP BY r.run_id
     ORDER BY r.created_at DESC
-    LIMIT $2 OFFSET $3
+    LIMIT ? OFFSET ?
   `;
 
-  const result = await getPool().query(query, [agentName, limit, offset]);
-  return result.rows;
+  const rows = getDatabase().prepare(query).all(agentName, limit, offset) as RunDetails[];
+
+  // Parse metadata JSON
+  return rows.map(row => ({
+    ...row,
+    metadata: row.metadata ? JSON.parse(row.metadata as any) : null,
+  }));
 }
 
 /**
  * Get run details by name
  */
-export async function getRunByName(
+export function getRunByName(
   agentName: string,
   runName: string
-): Promise<RunDetails | null> {
+): RunDetails | null {
   const query = `
     SELECT
       r.run_id,
@@ -153,18 +156,25 @@ export async function getRunByName(
       COUNT(e.event_id) as event_count
     FROM runs r
     LEFT JOIN events e ON r.run_id = e.run_id
-    WHERE r.agent_name = $1 AND r.run_name = $2
+    WHERE r.agent_name = ? AND r.run_name = ?
     GROUP BY r.run_id
   `;
 
-  const result = await getPool().query(query, [agentName, runName]);
-  return result.rows[0] || null;
+  const row = getDatabase().prepare(query).get(agentName, runName) as RunDetails | undefined;
+
+  if (!row) return null;
+
+  // Parse metadata JSON
+  return {
+    ...row,
+    metadata: row.metadata ? JSON.parse(row.metadata as any) : null,
+  };
 }
 
 /**
  * Get timeline events for a run
  */
-export async function getRunTimeline(runId: string): Promise<Event[]> {
+export function getRunTimeline(runId: string): Event[] {
   const query = `
     SELECT
       event_id,
@@ -176,18 +186,23 @@ export async function getRunTimeline(runId: string): Promise<Event[]> {
       previous_event_id,
       data
     FROM events
-    WHERE run_id = $1
+    WHERE run_id = ?
     ORDER BY timestamp ASC
   `;
 
-  const result = await getPool().query(query, [runId]);
-  return result.rows;
+  const rows = getDatabase().prepare(query).all(runId) as Event[];
+
+  // Parse JSON data
+  return rows.map(row => ({
+    ...row,
+    data: row.data ? JSON.parse(row.data as any) : null,
+  }));
 }
 
 /**
  * Get execution trace (hierarchical tree)
  */
-export async function getExecutionTrace(runId: string): Promise<Event[]> {
+export function getExecutionTrace(runId: string): Event[] {
   const query = `
     SELECT
       event_id,
@@ -199,46 +214,50 @@ export async function getExecutionTrace(runId: string): Promise<Event[]> {
       previous_event_id,
       data
     FROM events
-    WHERE run_id = $1
+    WHERE run_id = ?
     ORDER BY timestamp ASC
   `;
 
-  const result = await getPool().query(query, [runId]);
-  return result.rows;
+  const rows = getDatabase().prepare(query).all(runId) as Event[];
+
+  // Parse JSON data
+  return rows.map(row => ({
+    ...row,
+    data: row.data ? JSON.parse(row.data as any) : null,
+  }));
 }
 
 /**
  * Search events by criteria
  */
-export async function searchEvents(
+export function searchEvents(
   agentName?: string,
   eventType?: string,
   startTime?: Date,
   endTime?: Date,
   limit: number = 100
-): Promise<Event[]> {
+): Event[] {
   const conditions: string[] = [];
   const params: any[] = [];
-  let paramIndex = 1;
 
   if (agentName) {
-    conditions.push(`agent_name = $${paramIndex++}`);
+    conditions.push('agent_name = ?');
     params.push(agentName);
   }
 
   if (eventType) {
-    conditions.push(`event_type = $${paramIndex++}`);
+    conditions.push('event_type = ?');
     params.push(eventType);
   }
 
   if (startTime) {
-    conditions.push(`timestamp >= $${paramIndex++}`);
-    params.push(startTime);
+    conditions.push('timestamp >= ?');
+    params.push(startTime.toISOString());
   }
 
   if (endTime) {
-    conditions.push(`timestamp <= $${paramIndex++}`);
-    params.push(endTime);
+    conditions.push('timestamp <= ?');
+    params.push(endTime.toISOString());
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -256,19 +275,24 @@ export async function searchEvents(
     FROM events
     ${whereClause}
     ORDER BY timestamp DESC
-    LIMIT $${paramIndex}
+    LIMIT ?
   `;
 
   params.push(limit);
 
-  const result = await getPool().query(query, params);
-  return result.rows;
+  const rows = getDatabase().prepare(query).all(...params) as Event[];
+
+  // Parse JSON data
+  return rows.map(row => ({
+    ...row,
+    data: row.data ? JSON.parse(row.data as any) : null,
+  }));
 }
 
 /**
  * Get global metrics across all agents
  */
-export async function getGlobalMetrics(): Promise<any> {
+export function getGlobalMetrics(): any {
   const query = `
     SELECT
       COUNT(DISTINCT a.name) as total_agents,
@@ -284,41 +308,42 @@ export async function getGlobalMetrics(): Promise<any> {
     LEFT JOIN events e ON r.run_id = e.run_id
   `;
 
-  const result = await getPool().query(query);
-  return result.rows[0];
+  return getDatabase().prepare(query).get();
 }
 
 /**
  * Get cost breakdown by model
  */
-export async function getCostBreakdown(agentName?: string): Promise<any[]> {
-  const agentFilter = agentName ? 'AND e.agent_name = $1' : '';
+export function getCostBreakdown(agentName?: string): any[] {
+  const agentFilter = agentName ? 'AND e.agent_name = ?' : '';
   const params = agentName ? [agentName] : [];
 
   const query = `
     SELECT
-      e.data->>'model' as model,
+      json_extract(e.data, '$.model') as model,
       COUNT(*) as call_count,
-      SUM((e.data->>'cost')::float) as total_cost,
-      SUM((e.data->>'tokens_in')::float) as total_tokens_in,
-      SUM((e.data->>'tokens_out')::float) as total_tokens_out,
-      AVG((e.data->>'latency_ms')::float) as avg_latency_ms
+      SUM(CAST(json_extract(e.data, '$.cost') AS REAL)) as total_cost,
+      SUM(CAST(json_extract(e.data, '$.tokens_in') AS REAL)) as total_tokens_in,
+      SUM(CAST(json_extract(e.data, '$.tokens_out') AS REAL)) as total_tokens_out,
+      AVG(CAST(json_extract(e.data, '$.latency_ms') AS REAL)) as avg_latency_ms
     FROM events e
     WHERE e.event_type = 'llm_call'
-      AND e.data->>'model' IS NOT NULL
+      AND json_extract(e.data, '$.model') IS NOT NULL
       ${agentFilter}
-    GROUP BY e.data->>'model'
+    GROUP BY json_extract(e.data, '$.model')
     ORDER BY total_cost DESC
   `;
 
-  const result = await getPool().query(query, params);
-  return result.rows;
+  return getDatabase().prepare(query).all(...params) as any[];
 }
 
 /**
  * Compare runs
  */
-export async function compareRuns(runIds: string[]): Promise<RunDetails[]> {
+export function compareRuns(runIds: string[]): RunDetails[] {
+  // SQLite doesn't have ANY operator, use IN instead
+  const placeholders = runIds.map(() => '?').join(', ');
+
   const query = `
     SELECT
       r.run_id,
@@ -335,11 +360,16 @@ export async function compareRuns(runIds: string[]): Promise<RunDetails[]> {
       COUNT(e.event_id) as event_count
     FROM runs r
     LEFT JOIN events e ON r.run_id = e.run_id
-    WHERE r.run_id = ANY($1)
+    WHERE r.run_id IN (${placeholders})
     GROUP BY r.run_id
     ORDER BY r.created_at DESC
   `;
 
-  const result = await getPool().query(query, [runIds]);
-  return result.rows;
+  const rows = getDatabase().prepare(query).all(...runIds) as RunDetails[];
+
+  // Parse metadata JSON
+  return rows.map(row => ({
+    ...row,
+    metadata: row.metadata ? JSON.parse(row.metadata as any) : null,
+  }));
 }

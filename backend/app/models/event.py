@@ -1,7 +1,6 @@
 """Event database model for tracking agent operation events."""
-from sqlalchemy import Column, String, Index, ForeignKey, DateTime, ForeignKeyConstraint
+from sqlalchemy import Column, String, Index, ForeignKey, DateTime, ForeignKeyConstraint, JSON
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSON
 
 from app.models.base import Base, BaseModel
 

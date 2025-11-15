@@ -22,8 +22,9 @@ if config.config_file_name is not None:
 # Get database URL from settings
 settings = get_settings()
 db_url = settings.database_url
-if db_url.startswith("postgresql+asyncpg://"):
-    db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
+# Convert async SQLite URL to sync URL for migrations
+if db_url.startswith("sqlite+aiosqlite://"):
+    db_url = db_url.replace("sqlite+aiosqlite://", "sqlite://")
 
 config.set_main_option("sqlalchemy.url", db_url)
 target_metadata = Base.metadata

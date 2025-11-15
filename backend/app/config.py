@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # Database settings
-    database_url: str = "postgresql://user:password@localhost:5432/gati_db"
+    database_url: str = "sqlite+aiosqlite:///./gati.db"
     database_pool_size: int = 20
     database_max_overflow: int = 10
     database_pool_timeout: int = 30
