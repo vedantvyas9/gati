@@ -18,6 +18,7 @@ from app.schemas import (
     TokensTimestampData,
     AgentComparisonData,
 )
+from app.utils.timezone import format_datetime_local
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -233,7 +234,7 @@ async def get_cost_timeline(
             cumulative_cost += daily_cost
             result.append(
                 CostTimestampData(
-                    timestamp=row[0].isoformat() if row[0] else "",
+                    timestamp=format_datetime_local(row[0]) if row[0] else "",
                     cost=daily_cost,
                     cumulative_cost=cumulative_cost,
                 )
@@ -291,7 +292,7 @@ async def get_tokens_timeline(
 
             result.append(
                 TokensTimestampData(
-                    timestamp=row[0].isoformat() if row[0] else "",
+                    timestamp=format_datetime_local(row[0]) if row[0] else "",
                     tokens_in=daily_tokens_in,
                     tokens_out=daily_tokens_out,
                     cumulative_tokens_in=cumulative_tokens_in,

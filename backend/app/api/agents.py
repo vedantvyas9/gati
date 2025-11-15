@@ -10,6 +10,7 @@ from sqlalchemy.orm import joinedload
 from app.database.connection import get_async_session
 from app.models import Agent, Run, Event
 from app.schemas import AgentResponse, AgentStatsResponse
+from app.utils.timezone import format_datetime_local
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -87,7 +88,7 @@ async def list_agents(
                     total_events=total_events,
                     total_cost=total_cost,
                     avg_cost=avg_cost,
-                    created_at=agent.created_at.isoformat(),
+                    created_at=format_datetime_local(agent.created_at),
                 )
             )
 
@@ -154,7 +155,7 @@ async def get_agent_stats(
             total_events=total_events,
             total_cost=total_cost,
             avg_cost=avg_cost,
-            created_at=agent.created_at.isoformat(),
+            created_at=format_datetime_local(agent.created_at),
         )
 
     except HTTPException:
@@ -220,7 +221,7 @@ async def get_agent_runs(
                 "total_cost": run.total_cost,
                 "tokens_in": run.tokens_in,
                 "tokens_out": run.tokens_out,
-                "created_at": run.created_at.isoformat(),
+                "created_at": format_datetime_local(run.created_at),
             }
             for run in runs
         ]

@@ -17,6 +17,7 @@ from app.schemas import (
     ExecutionTreeNodeResponse,
     RunUpdateRequest,
 )
+from app.utils.timezone import format_datetime_local
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -62,7 +63,7 @@ async def get_run_details(
             tokens_in=run.tokens_in,
             tokens_out=run.tokens_out,
             metadata=run.run_metadata,
-            created_at=run.created_at.isoformat(),
+            created_at=format_datetime_local(run.created_at),
             event_count=len(run.events) if run.events else 0,
         )
 
@@ -113,7 +114,7 @@ async def get_run_timeline(
             RunTimelineEvent(
                 event_id=event.event_id,
                 event_type=event.event_type,
-                timestamp=event.timestamp.isoformat(),
+                timestamp=format_datetime_local(event.timestamp),
                 data=event.data,
             )
             for event in events
@@ -124,7 +125,7 @@ async def get_run_timeline(
             agent_name=run.agent_name,
             status=run.status,
             total_duration_ms=run.total_duration_ms,
-            created_at=run.created_at.isoformat(),
+            created_at=format_datetime_local(run.created_at),
             events=timeline_events,
         )
 
@@ -181,7 +182,7 @@ async def get_execution_trace(
             node = ExecutionTreeNodeResponse(
                 event_id=event.event_id,
                 event_type=event.event_type,
-                timestamp=event.timestamp.isoformat(),
+                timestamp=format_datetime_local(event.timestamp),
                 data=event.data,
                 parent_event_id=event.parent_event_id,
                 previous_event_id=event.previous_event_id,
@@ -440,7 +441,7 @@ async def update_run_name(
             tokens_in=run.tokens_in,
             tokens_out=run.tokens_out,
             metadata=run.run_metadata,
-            created_at=run.created_at.isoformat(),
+            created_at=format_datetime_local(run.created_at),
             event_count=len(run.events) if run.events else 0,
         )
 
