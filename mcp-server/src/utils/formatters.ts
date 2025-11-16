@@ -22,7 +22,7 @@ export function formatAgentsList(agents: AgentStats[]): string {
     output += `   Total Events: ${agent.total_events}\n`;
     output += `   Total Cost: $${Number(agent.total_cost).toFixed(4)}\n`;
     output += `   Avg Cost/Run: $${Number(agent.avg_cost_per_run).toFixed(4)}\n`;
-    output += `   Created: ${agent.created_at.toISOString()}\n\n`;
+    output += `   Created: ${agent.created_at}\n\n`;
   });
 
   return output;
@@ -43,7 +43,7 @@ export function formatAgentStats(agent: AgentStats): string {
   output += `- **Total Events:** ${agent.total_events}\n`;
   output += `- **Total Cost:** $${Number(agent.total_cost).toFixed(4)}\n`;
   output += `- **Average Cost per Run:** $${Number(agent.avg_cost_per_run).toFixed(4)}\n`;
-  output += `- **Created:** ${agent.created_at.toISOString()}\n`;
+  output += `- **Created:** ${agent.created_at}\n`;
 
   return output;
 }
@@ -65,7 +65,7 @@ export function formatRunsList(runs: RunDetails[]): string {
     output += `   Cost: ${run.total_cost ? `$${Number(run.total_cost).toFixed(4)}` : 'N/A'}\n`;
     output += `   Tokens: ${run.tokens_in || 0} in, ${run.tokens_out || 0} out\n`;
     output += `   Events: ${run.event_count}\n`;
-    output += `   Created: ${run.created_at.toISOString()}\n\n`;
+    output += `   Created: ${run.created_at}\n\n`;
   });
 
   return output;
@@ -86,7 +86,7 @@ export function formatRunDetails(run: RunDetails): string {
   output += `- **Input Tokens:** ${run.tokens_in || 0}\n`;
   output += `- **Output Tokens:** ${run.tokens_out || 0}\n`;
   output += `- **Total Events:** ${run.event_count}\n`;
-  output += `- **Created:** ${run.created_at.toISOString()}\n\n`;
+  output += `- **Created:** ${run.created_at}\n\n`;
 
   if (run.metadata && Object.keys(run.metadata).length > 0) {
     output += `## Metadata\n\n`;

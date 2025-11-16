@@ -19,8 +19,8 @@ export function initializeDatabase(config: GatiMCPConfig): Database.Database {
     fileMustExist: true,
   });
 
-  // Enable WAL mode for better concurrency
-  db.pragma('journal_mode = WAL');
+  // Note: Cannot set WAL mode on readonly database
+  // WAL mode should be set by the backend (writer)
 
   return db;
 }
