@@ -25,6 +25,10 @@ async function sendVerificationEmail(email, code) {
 
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
+  console.log('Attempting to send email to:', email);
+  console.log('RESEND_API_KEY exists:', !!RESEND_API_KEY);
+  console.log('RESEND_API_KEY length:', RESEND_API_KEY ? RESEND_API_KEY.length : 0);
+
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY not configured');
     return false;
