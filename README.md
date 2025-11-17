@@ -2,7 +2,7 @@
 
 **Local-First Observability Platform for AI Agents**
 
-GATI (Get Agent Telemetry & Insights) is a comprehensive observability platform that helps you understand, debug, and optimize your AI agents. Track every LLM call, tool usage, and state change with minimal code changes.
+GATI is a comprehensive observability platform that helps you understand, debug, and optimize your AI agents. Track every LLM call, tool usage, and state change with minimal code changes.
 
 ---
 
