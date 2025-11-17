@@ -5,18 +5,34 @@ const crypto = require('crypto');
 
 // Parse Supabase connection string
 const { URL } = require('url');
-const dbUrl = new URL(process.env.POSTGRES_URL);
 
-const pool = new Pool({
-  host: dbUrl.hostname,
-  port: parseInt(dbUrl.port),
-  database: dbUrl.pathname.split('/')[1],
-  user: dbUrl.username,
-  password: dbUrl.password,
-  ssl: {
-    rejectUnauthorized: false
+// Lazy pool initialization to handle missing env vars gracefully
+let pool = null;
+
+function getPool() {
+  if (!pool) {
+    if (!process.env.POSTGRES_URL) {
+      throw new Error('POSTGRES_URL environment variable is not set');
+    }
+    try {
+      const dbUrl = new URL(process.env.POSTGRES_URL);
+      pool = new Pool({
+        host: dbUrl.hostname,
+        port: parseInt(dbUrl.port),
+        database: dbUrl.pathname.split('/')[1],
+        user: dbUrl.username,
+        password: dbUrl.password,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create database pool:', error);
+      throw new Error(`Database configuration error: ${error.message}`);
+    }
   }
-});
+  return pool;
+}
 
 // Email sending function (using a service like Resend, SendGrid, etc.)
 async function sendVerificationEmail(email, code) {
@@ -56,8 +72,18 @@ async function sendVerificationEmail(email, code) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Resend API error:', errorData);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Resend API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+      
+      // Log specific error message for debugging
+      if (errorData.message) {
+        console.error('Resend error message:', errorData.message);
+      }
+      
       return false;
     }
 
@@ -66,6 +92,7 @@ async function sendVerificationEmail(email, code) {
     return true;
   } catch (error) {
     console.error('Failed to send email:', error);
+    console.error('Error stack:', error.stack);
     return false;
   }
 }
@@ -87,6 +114,14 @@ module.exports = async function handler(request, response) {
   }
 
   try {
+    // Validate environment first
+    if (!process.env.POSTGRES_URL) {
+      console.error('POSTGRES_URL not configured');
+      return response.status(500).json({
+        error: 'Server configuration error. Please contact support.'
+      });
+    }
+
     const { email } = request.body;
 
     // Validate email
@@ -103,7 +138,7 @@ module.exports = async function handler(request, response) {
     // Store in database with 10-minute expiration
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    await pool.query(
+    await getPool().query(
       `INSERT INTO gati_verification_codes (email, code_hash, expires_at, created_at)
        VALUES ($1, $2, $3, NOW())
        ON CONFLICT (email)
@@ -115,8 +150,11 @@ module.exports = async function handler(request, response) {
     const emailSent = await sendVerificationEmail(email, code);
 
     if (!emailSent) {
+      // Check if this is a Resend validation error (testing mode limitation)
+      // In testing mode, Resend only allows sending to the account owner's email
       return response.status(500).json({
-        error: 'Failed to send verification email. Please try again.'
+        error: 'Failed to send verification email. Please try again or contact support if the issue persists.',
+        hint: 'If you are testing, ensure you are using the correct email address.'
       });
     }
 
@@ -127,9 +165,10 @@ module.exports = async function handler(request, response) {
 
   } catch (error) {
     console.error('Error requesting code:', error);
+    console.error('Error stack:', error.stack);
     return response.status(500).json({
       error: 'Internal server error',
-      message: error.message
+      message: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred. Please try again.'
     });
   }
 };

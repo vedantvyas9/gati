@@ -4,18 +4,34 @@ const crypto = require('crypto');
 
 // Parse Supabase connection string
 const { URL } = require('url');
-const dbUrl = new URL(process.env.POSTGRES_URL);
 
-const pool = new Pool({
-  host: dbUrl.hostname,
-  port: parseInt(dbUrl.port),
-  database: dbUrl.pathname.split('/')[1],
-  user: dbUrl.username,
-  password: dbUrl.password,
-  ssl: {
-    rejectUnauthorized: false
+// Lazy pool initialization to handle missing env vars gracefully
+let pool = null;
+
+function getPool() {
+  if (!pool) {
+    if (!process.env.POSTGRES_URL) {
+      throw new Error('POSTGRES_URL environment variable is not set');
+    }
+    try {
+      const dbUrl = new URL(process.env.POSTGRES_URL);
+      pool = new Pool({
+        host: dbUrl.hostname,
+        port: parseInt(dbUrl.port),
+        database: dbUrl.pathname.split('/')[1],
+        user: dbUrl.username,
+        password: dbUrl.password,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create database pool:', error);
+      throw new Error(`Database configuration error: ${error.message}`);
+    }
   }
-});
+  return pool;
+}
 
 module.exports = async function handler(request, response) {
   // Set CORS headers
@@ -34,6 +50,14 @@ module.exports = async function handler(request, response) {
   }
 
   try {
+    // Validate environment first
+    if (!process.env.POSTGRES_URL) {
+      console.error('POSTGRES_URL not configured');
+      return response.status(500).json({
+        error: 'Server configuration error. Please contact support.'
+      });
+    }
+
     const { email, code } = request.body;
 
     // Validate inputs
@@ -45,7 +69,7 @@ module.exports = async function handler(request, response) {
     const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
 
     // Get stored code from database
-    const result = await pool.query(
+    const result = await getPool().query(
       `SELECT code_hash, expires_at, attempts, verified
        FROM gati_verification_codes
        WHERE email = $1`,
@@ -84,7 +108,7 @@ module.exports = async function handler(request, response) {
     // Verify code
     if (hashedCode !== record.code_hash) {
       // Increment attempts
-      await pool.query(
+      await getPool().query(
         `UPDATE gati_verification_codes
          SET attempts = attempts + 1
          WHERE email = $1`,
@@ -101,7 +125,7 @@ module.exports = async function handler(request, response) {
     const apiToken = crypto.randomBytes(32).toString('hex');
 
     // Store user and token
-    await pool.query(
+    await getPool().query(
       `INSERT INTO gati_users (email, api_token, created_at, last_active)
        VALUES ($1, $2, NOW(), NOW())
        ON CONFLICT (email)
@@ -110,7 +134,7 @@ module.exports = async function handler(request, response) {
     );
 
     // Mark code as verified
-    await pool.query(
+    await getPool().query(
       `UPDATE gati_verification_codes
        SET verified = true
        WHERE email = $1`,
@@ -126,9 +150,10 @@ module.exports = async function handler(request, response) {
 
   } catch (error) {
     console.error('Error verifying code:', error);
+    console.error('Error stack:', error.stack);
     return response.status(500).json({
       error: 'Internal server error',
-      message: error.message
+      message: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred. Please try again.'
     });
   }
 };
