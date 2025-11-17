@@ -38,7 +38,7 @@ async function sendVerificationEmail(email, code) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'GATI <onboarding@gati.dev>',
+        from: 'GATI <onboarding@resend.dev>',
         to: email,
         subject: 'Your GATI Verification Code',
         html: `
