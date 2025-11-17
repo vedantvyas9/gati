@@ -28,7 +28,7 @@ module.exports = async function handler(request, response) {
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - (days - 1));
     } else {
-      const earliestResult = await pool.query('SELECT MIN(timestamp) as earliest FROM gati_metrics_snapshots');
+      const earliestResult = await pool.query('SELECT MIN(recorded_at) as earliest FROM public.gati_metrics_snapshots');
       const earliest = earliestResult.rows[0]?.earliest;
       if (earliest) {
         startDate = normalizeDate(earliest);
@@ -44,31 +44,31 @@ module.exports = async function handler(request, response) {
       SELECT COUNT(DISTINCT installation_id) as total_installations,
              COALESCE(SUM(lifetime_events), 0) as total_events,
              COALESCE(SUM(agents_tracked), 0) as total_agents
-      FROM gati_metrics
+      FROM public.gati_metrics
     `);
     const summaryRow = summaryResult.rows[0];
-    const usersResult = await pool.query('SELECT COUNT(*) as count FROM gati_users');
+    const usersResult = await pool.query('SELECT COUNT(*) as count FROM public.gati_users');
     const totalUsers = parseInt(usersResult.rows[0]?.count || 0);
 
     const activeWindowStart = new Date(utcNow);
     activeWindowStart.setDate(activeWindowStart.getDate() - 7);
     const activeResult = await pool.query(
-      `SELECT COUNT(DISTINCT installation_id) as count FROM gati_metrics_snapshots WHERE timestamp >= $1`,
+      `SELECT COUNT(DISTINCT installation_id) as count FROM public.gati_metrics_snapshots WHERE recorded_at >= $1`,
       [activeWindowStart]
     );
     const activeInstallations = parseInt(activeResult.rows[0]?.count || 0);
 
     const timeseriesResult = await pool.query(
-      `SELECT DATE(timestamp) as bucket_date,
+      `SELECT DATE(recorded_at) as bucket_date,
               COUNT(DISTINCT installation_id) as daily_active_installations,
               COUNT(DISTINCT user_email) as active_users,
               COALESCE(SUM(events_today), 0) as events_per_day,
               COALESCE(SUM(agents_tracked), 0) as agents_tracked,
               COALESCE(SUM(mcp_queries), 0) as mcp_queries
-       FROM gati_metrics_snapshots
-       WHERE timestamp >= $1
-       GROUP BY DATE(timestamp)
-       ORDER BY DATE(timestamp)`,
+       FROM public.gati_metrics_snapshots
+       WHERE recorded_at >= $1
+       GROUP BY DATE(recorded_at)
+       ORDER BY DATE(recorded_at)`,
       [startDate]
     );
 
@@ -87,16 +87,16 @@ module.exports = async function handler(request, response) {
     });
 
     const firstSeenResult = await pool.query(`
-      SELECT installation_id, MIN(timestamp) as first_seen_at
-      FROM gati_metrics_snapshots
+      SELECT installation_id, MIN(recorded_at) as first_seen_at
+      FROM public.gati_metrics_snapshots
       WHERE installation_id IS NOT NULL
       GROUP BY installation_id
     `);
 
     const initialTotalResult = await pool.query(
       `SELECT COUNT(*) as count FROM (
-        SELECT installation_id, MIN(timestamp) as first_seen_at
-        FROM gati_metrics_snapshots
+        SELECT installation_id, MIN(recorded_at) as first_seen_at
+        FROM public.gati_metrics_snapshots
         WHERE installation_id IS NOT NULL
         GROUP BY installation_id
       ) subq WHERE first_seen_at < $1`,
@@ -105,9 +105,9 @@ module.exports = async function handler(request, response) {
     let initialCumulative = parseInt(initialTotalResult.rows[0]?.count || 0);
 
     const dailyNewResult = await pool.query(
-      `SELECT DATE(MIN(timestamp)) as first_seen_date, COUNT(*) as new_installations
-       FROM (SELECT installation_id, MIN(timestamp) as first_seen_at
-             FROM gati_metrics_snapshots
+      `SELECT DATE(MIN(recorded_at)) as first_seen_date, COUNT(*) as new_installations
+       FROM (SELECT installation_id, MIN(recorded_at) as first_seen_at
+             FROM public.gati_metrics_snapshots
              WHERE installation_id IS NOT NULL
              GROUP BY installation_id) subq
        WHERE first_seen_at >= $1
@@ -159,7 +159,7 @@ module.exports = async function handler(request, response) {
     }
 
     const authResult = await pool.query(
-      'SELECT COUNT(DISTINCT installation_id) as count FROM gati_metrics WHERE user_email IS NOT NULL'
+      'SELECT COUNT(DISTINCT installation_id) as count FROM public.gati_metrics WHERE user_email IS NOT NULL'
     );
     const authenticatedCount = parseInt(authResult.rows[0]?.count || 0);
     const totalInstallations = parseInt(summaryRow.total_installations || 0);
