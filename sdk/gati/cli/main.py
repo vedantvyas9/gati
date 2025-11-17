@@ -158,8 +158,25 @@ Examples:
     logs_parser.set_defaults(func=show_logs)
 
     # Auth command
+    def handle_auth(args):
+        """Handle auth command - check if already authenticated first."""
+        auth = AuthManager()
+        if auth.is_authenticated():
+            email = auth.get_email()
+            print(f"\n✅ You are already authenticated as: {email}\n")
+            response = input("Would you like to re-authenticate? (y/n): ").strip().lower()
+            if response == 'y':
+                # Logout first, then re-authenticate
+                auth.logout()
+                return auth.interactive_auth()
+            else:
+                print("\n✅ Keeping existing authentication.\n")
+                return True
+        else:
+            return auth.interactive_auth()
+    
     auth_parser = subparsers.add_parser("auth", help="Authenticate with GATI")
-    auth_parser.set_defaults(func=lambda args: AuthManager().interactive_auth())
+    auth_parser.set_defaults(func=handle_auth)
 
     # Logout command
     logout_parser = subparsers.add_parser("logout", help="Remove saved credentials")

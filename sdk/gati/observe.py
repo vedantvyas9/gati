@@ -99,7 +99,17 @@ class Observe:
 
         Raises:
             ValueError: If name is not provided or is empty
+            RuntimeError: If user is not authenticated
         """
+        # MANDATORY AUTHENTICATION CHECK
+        from gati.cli.auth import AuthManager
+        auth = AuthManager()
+        if not auth.is_authenticated():
+            raise RuntimeError(
+                "GATI requires authentication before use. "
+                "Please run 'gati auth' to authenticate with your email address."
+            )
+        
         # Validate required parameter
         if not name or not isinstance(name, str) or not name.strip():
             raise ValueError(

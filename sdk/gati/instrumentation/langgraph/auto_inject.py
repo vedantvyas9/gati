@@ -1625,7 +1625,19 @@ def instrument_langgraph() -> bool:
 
     Returns:
         bool: True if instrumentation succeeded, False otherwise
+    
+    Raises:
+        RuntimeError: If user is not authenticated
     """
+    # MANDATORY AUTHENTICATION CHECK
+    from gati.cli.auth import AuthManager
+    auth = AuthManager()
+    if not auth.is_authenticated():
+        raise RuntimeError(
+            "GATI requires authentication before use. "
+            "Please run 'gati auth' to authenticate with your email address."
+        )
+    
     global _instrumentation_applied, _original_compile
 
     if not LANGGRAPH_AVAILABLE:
