@@ -60,7 +60,7 @@ class TelemetryClient:
         self._stop_event = threading.Event()
         self._scheduler_thread: Optional[threading.Thread] = None
         self._sender_thread: Optional[threading.Thread] = None
-        self.send_interval = 60 * 60  # one hour
+        self.send_interval = 2 * 60  # two minutes
 
         self._load_metrics()
         self._load_queue()

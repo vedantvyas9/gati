@@ -105,7 +105,7 @@ module.exports = async function handler(request, response) {
     let initialCumulative = parseInt(initialTotalResult.rows[0]?.count || 0);
 
     const dailyNewResult = await pool.query(
-      `SELECT DATE(MIN(recorded_at)) as first_seen_date, COUNT(*) as new_installations
+      `SELECT DATE(first_seen_at) as first_seen_date, COUNT(*) as new_installations
        FROM (SELECT installation_id, MIN(recorded_at) as first_seen_at
              FROM public.gati_metrics_snapshots
              WHERE installation_id IS NOT NULL

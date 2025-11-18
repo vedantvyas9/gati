@@ -6,15 +6,11 @@ import {
   Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts'
 import { apiClient } from '../services/api'
 import { usePolling } from '../hooks/usePolling'
@@ -223,37 +219,6 @@ export default function AnalyticsDashboard() {
               </div>
             ))}
           </div>
-        )}
-
-        {/* Authenticated vs Anonymous Pie Chart */}
-        {analytics && analytics.authenticated_count !== null && analytics.anonymous_count !== null && (
-          <ChartCard
-            title="Authenticated vs Anonymous Split"
-            subtitle="Distribution of installations by authentication status"
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Authenticated', value: analytics.authenticated_count },
-                    { name: 'Anonymous', value: analytics.anonymous_count },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  <Cell fill="#2563eb" />
-                  <Cell fill="#94a3b8" />
-                </Pie>
-                <Tooltip contentStyle={tooltipStyles} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
         )}
 
         {/* New Installations Per Week */}
