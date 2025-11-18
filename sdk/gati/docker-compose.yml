@@ -1,8 +1,10 @@
+version: '3.8'
+
 services:
   # FastAPI Backend
   backend:
     build:
-      context: ./backend
+      context: https://github.com/gati-ai/gati-sdk.git#main:backend
       dockerfile: Dockerfile
     container_name: gati_backend
     environment:
@@ -20,11 +22,7 @@ services:
       - gati_network
     restart: unless-stopped
     healthcheck:
-      test:
-        - CMD
-        - python
-        - -c
-        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -32,9 +30,8 @@ services:
   # React Dashboard
   dashboard:
     build:
-      context: ./dashboard
+      context: https://github.com/gati-ai/gati-sdk.git#main:dashboard
       dockerfile: Dockerfile
-      target: production
     container_name: gati_dashboard
     environment:
       REACT_APP_API_URL: http://localhost:8000
@@ -50,7 +47,7 @@ services:
   # MCP Server for Claude Desktop / GitHub Copilot
   mcp-server:
     build:
-      context: ./mcp-server
+      context: https://github.com/gati-ai/gati-sdk.git#main:mcp-server
       dockerfile: Dockerfile
     container_name: gati_mcp_server
     environment:

@@ -55,33 +55,31 @@ module.exports = async function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify API token
+  // Verify API token (optional for anonymous telemetry)
   const apiToken = request.headers['x-api-key'] || request.headers['authorization']?.replace('Bearer ', '');
 
-  if (!apiToken) {
-    return response.status(401).json({ error: 'Unauthorized - API token required' });
-  }
+  // Validate token against database if provided
+  let userEmail = null;
+  if (apiToken) {
+    try {
+      const userResult = await pool.query(
+        'SELECT email FROM gati_users WHERE api_token = $1',
+        [apiToken]
+      );
 
-  // Validate token against database
-  let userEmail;
-  try {
-    const userResult = await pool.query(
-      'SELECT email FROM gati_users WHERE api_token = $1',
-      [apiToken]
-    );
+      if (userResult.rows.length === 0) {
+        return response.status(401).json({ error: 'Unauthorized - Invalid API token' });
+      }
 
-    if (userResult.rows.length === 0) {
-      return response.status(401).json({ error: 'Unauthorized - Invalid API token' });
+      userEmail = userResult.rows[0].email;
+
+      await pool.query('UPDATE gati_users SET last_active = NOW() WHERE api_token = $1', [
+        apiToken,
+      ]);
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return response.status(500).json({ error: 'Authentication error' });
     }
-
-    userEmail = userResult.rows[0].email;
-
-    await pool.query('UPDATE gati_users SET last_active = NOW() WHERE api_token = $1', [
-      apiToken,
-    ]);
-  } catch (error) {
-    console.error('Token validation error:', error);
-    return response.status(500).json({ error: 'Authentication error' });
   }
 
   try {

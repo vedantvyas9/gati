@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gati"
-dynamic = ["version"]
+version = "0.1.1"
 description = "Local-first observability for AI agents. Track LLM calls, tool usage, and agent state."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
-    {name = "GATI Team", email = "support@gati.dev"}
+    {name = "Vedant Vyas", email = "vedant.p.vyas@gmail.com"}
 ]
 keywords = ["ai", "agents", "llm", "observability", "tracing", "langchain", "langgraph", "monitoring", "dashboard"]
 classifiers = [
@@ -61,10 +61,10 @@ backend = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/gati-ai/gati-sdk"
-Documentation = "https://docs.gati.dev"
-Repository = "https://github.com/gati-ai/gati-sdk"
-Issues = "https://github.com/gati-ai/gati-sdk/issues"
+Homepage = "https://github.com/vedantvyas9/gati"
+Documentation = "https://github.com/vedantvyas9/gati#readme"
+Repository = "https://github.com/vedantvyas9/gati"
+Issues = "https://github.com/vedantvyas9/gati/issues"
 
 [project.scripts]
 gati = "gati.cli.main:main"
@@ -78,5 +78,3 @@ packages = {find = {where = ["sdk"]}}
 [tool.setuptools.package-data]
 gati = ["docker-compose.yml", "py.typed"]
 
-[tool.setuptools.dynamic]
-version = {attr = "gati.version.__version__"}

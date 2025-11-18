@@ -3,7 +3,6 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
-from .auth import AuthManager
 
 
 def get_gati_root() -> Path:
@@ -14,63 +13,77 @@ def get_gati_root() -> Path:
     return gati_pkg
 
 
-def check_authentication():
-    """Check if user is authenticated, prompt if not."""
-    auth = AuthManager()
-    if not auth.is_authenticated():
-        print("\n⚠️  You are not authenticated yet.")
-        print("   GATI requires authentication to prevent spam and keep the service free.\n")
-        response = input("Would you like to authenticate now? (y/n): ").strip().lower()
-        if response == 'y':
-            if auth.interactive_auth():
-                return True
-            else:
-                return False
-        else:
-            print("\n❌ Authentication is required to use GATI.")
-            print("   Run 'gati auth' when you're ready to authenticate.\n")
-            return False
-    return True
-
-
 def start_services(args):
-    """Guide users to start GATI backend and dashboard."""
+    """Start GATI backend and dashboard using Docker Compose."""
     print("\n" + "=" * 70)
-    print("🚀 GATI - Local-first observability for AI agents")
-    print("=" * 70)
-    print("\n✅ GATI SDK is installed and ready to use!")
-    print("\nTo view traces in the dashboard, clone the GATI repository:\n")
-    print("  git clone https://github.com/gati-ai/gati-sdk.git")
-    print("  cd gati-sdk")
-    print("  docker-compose up")
-    print("\nThis will start:")
-    print("  • Backend: http://localhost:8000")
-    print("  • Dashboard: http://localhost:3000")
-    print("\n" + "=" * 70)
-    print("\nSDK Usage (no dashboard needed):")
-    print("=" * 70)
-    print("\n  from gati import observe")
-    print("")
-    print("  @observe()")
-    print("  def my_agent(query):")
-    print("      # Your agent code")
-    print("      return result")
-    print("\n  # Traces are logged to stdout automatically")
-    print("  # Run docker-compose (above) to view in dashboard")
-    print("\n" + "=" * 70 + "\n")
+    print("🚀 GATI - Starting services...")
+    print("=" * 70 + "\n")
+
+    gati_root = get_gati_root()
+    compose_file = gati_root / "docker-compose.yml"
+
+    if not compose_file.exists():
+        print(f"❌ Error: docker-compose.yml not found at {compose_file}")
+        print("\nPlease ensure GATI is installed correctly:")
+        print("  pip install --upgrade gati\n")
+        sys.exit(1)
+
+    # Build the docker-compose command
+    cmd = ["docker-compose", "-f", str(compose_file), "up"]
+
+    # If foreground flag is set, override detach (run in foreground)
+    run_detached = args.detach and not args.foreground
+    if run_detached:
+        cmd.append("-d")
+
+    try:
+        print("Starting Docker containers...")
+        result = subprocess.run(cmd, check=True)
+
+        if run_detached:
+            print("\n" + "=" * 70)
+            print("✅ GATI services started successfully!")
+            print("=" * 70)
+            print("\nServices running at:")
+            print("  • Backend:   http://localhost:8000")
+            print("  • Dashboard: http://localhost:3000")
+            print("\nTo stop services: gati stop")
+            print("To view logs:     gati logs -f")
+            print("=" * 70 + "\n")
+
+        return result.returncode
+    except FileNotFoundError:
+        print("❌ Error: docker-compose not found.")
+        print("\nPlease install Docker and Docker Compose:")
+        print("  https://docs.docker.com/get-docker/\n")
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"\n❌ Error starting services: {e}")
+        print("\nTroubleshooting:")
+        print("  • Make sure Docker is running")
+        print("  • Check if ports 8000 and 3000 are available")
+        print("  • Run 'docker-compose logs' for details\n")
+        sys.exit(1)
 
 
 def stop_services(args):
     """Stop GATI backend and dashboard."""
+    print("\n🛑 Stopping GATI services...")
+
     gati_root = get_gati_root()
     compose_file = gati_root / "docker-compose.yml"
-    
+
+    if not compose_file.exists():
+        print(f"❌ Error: docker-compose.yml not found at {compose_file}")
+        sys.exit(1)
+
     cmd = ["docker-compose", "-f", str(compose_file), "down"]
-    
+
     try:
         subprocess.run(cmd, check=True)
+        print("✅ GATI services stopped successfully.\n")
     except subprocess.CalledProcessError as e:
-        print(f"Error stopping services: {e}")
+        print(f"❌ Error stopping services: {e}")
         sys.exit(1)
 
 
@@ -113,8 +126,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  gati start              Start backend and dashboard
-  gati start -d           Start in detached mode
+  gati start              Start backend and dashboard (detached mode)
+  gati start -f           Start in foreground with logs visible
   gati stop               Stop all services
   gati status             Show service status
   gati logs               Show logs
@@ -129,7 +142,13 @@ Examples:
     start_parser.add_argument(
         "-d", "--detach",
         action="store_true",
-        help="Run in detached mode"
+        default=True,
+        help="Run in detached mode (default: True)"
+    )
+    start_parser.add_argument(
+        "-f", "--foreground",
+        action="store_true",
+        help="Run in foreground (logs visible)"
     )
     start_parser.set_defaults(func=start_services)
     
@@ -155,35 +174,6 @@ Examples:
         help="Specific service to show logs for"
     )
     logs_parser.set_defaults(func=show_logs)
-
-    # Auth command
-    def handle_auth(args):
-        """Handle auth command - check if already authenticated first."""
-        auth = AuthManager()
-        if auth.is_authenticated():
-            email = auth.get_email()
-            print(f"\n✅ You are already authenticated as: {email}\n")
-            response = input("Would you like to re-authenticate? (y/n): ").strip().lower()
-            if response == 'y':
-                # Logout first, then re-authenticate
-                auth.logout()
-                return auth.interactive_auth()
-            else:
-                print("\n✅ Keeping existing authentication.\n")
-                return True
-        else:
-            return auth.interactive_auth()
-    
-    auth_parser = subparsers.add_parser("auth", help="Authenticate with GATI")
-    auth_parser.set_defaults(func=handle_auth)
-
-    # Logout command
-    logout_parser = subparsers.add_parser("logout", help="Remove saved credentials")
-    logout_parser.set_defaults(func=lambda args: AuthManager().logout())
-
-    # Auth status command
-    whoami_parser = subparsers.add_parser("whoami", help="Show authentication status")
-    whoami_parser.set_defaults(func=lambda args: AuthManager().show_status())
 
     args = parser.parse_args()
     

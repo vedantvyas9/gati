@@ -32,7 +32,7 @@ class TelemetryClient:
     MAX_BACKOFF_SECONDS = 30 * 60  # 30 minutes
 
     def __init__(
-        self, enabled: bool = True, endpoint: Optional[str] = None, sdk_version: str = "0.1.0"
+        self, enabled: bool = True, endpoint: Optional[str] = None, sdk_version: str = "0.1.1"
     ) -> None:
         self.enabled = enabled
         self.endpoint = endpoint or self.DEFAULT_ENDPOINT
@@ -381,20 +381,23 @@ class TelemetryClient:
 
     def _transmit_payload(self, payload: Dict[str, Any]) -> bool:
         api_token = self._get_api_token()
-        if not api_token:
-            self.logger.debug("Telemetry skipped: user not authenticated (no API token)")
-            return False
+
+        # Build headers - API key is optional for anonymous telemetry
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": f"gati-sdk/{self.sdk_version}",
+        }
+        if api_token:
+            headers["X-API-Key"] = api_token
+        else:
+            self.logger.debug("Sending anonymous telemetry (no API token)")
 
         try:
             response = requests.post(
                 self.endpoint,
                 json=payload,
                 timeout=5.0,
-                headers={
-                    "Content-Type": "application/json",
-                    "User-Agent": f"gati-sdk/{self.sdk_version}",
-                    "X-API-Key": api_token,
-                },
+                headers=headers,
             )
         except requests.exceptions.Timeout:
             self.logger.debug("Telemetry request timed out")
@@ -529,4 +532,5 @@ class TelemetryClient:
                 self._queue_file.unlink()
             except Exception as exc:
                 self.logger.debug(f"Failed to remove telemetry queue: {exc}")
+
 

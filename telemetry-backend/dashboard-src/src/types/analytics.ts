@@ -6,6 +6,7 @@ export interface AnalyticsSummaryCards {
   total_users: number
   total_events: number
   total_agents: number
+  total_mcp_queries: number
 }
 
 export interface AnalyticsTimeseriesPoint {

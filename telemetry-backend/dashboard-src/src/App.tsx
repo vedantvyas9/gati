@@ -1,26 +1,6 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
-import AgentsList from './AgentsList'
-import AgentDetail from './AgentDetail'
+import { useState, useEffect } from 'react'
 import './styles/globals.css'
-
-// Lazy load the metrics dashboard
-const MetricsDashboard = lazy(() => import('./MetricsDashboard'))
-
-// Lazy load analytics pages
-const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard'))
-const EngagementAnalytics = lazy(() => import('./pages/EngagementAnalytics'))
-const UserAnalytics = lazy(() => import('./pages/UserAnalytics'))
-const FeatureAdoption = lazy(() => import('./pages/FeatureAdoption'))
-const RetentionGrowth = lazy(() => import('./pages/RetentionGrowth'))
-const InfrastructureInsights = lazy(() => import('./pages/InfrastructureInsights'))
-
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-navy-500 border-t-transparent"></div>
-  </div>
-)
+import AnalyticsDashboard from './pages/AnalyticsDashboard'
 
 function App() {
   // Initialize from localStorage synchronously to prevent flash
@@ -50,80 +30,34 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-white dark:bg-slate-900 text-navy-900 dark:text-slate-100 transition-colors">
-        <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
-        <main className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <AnalyticsDashboard />
-                </Suspense>
-              }
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-navy-900 dark:text-slate-100 transition-colors">
+      <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-navy-600 dark:text-navy-300 font-semibold">
+              GATI Telemetry
+            </p>
+            <h1 className="text-2xl font-serif font-bold">Control Room</h1>
+            <p className="text-slate-500 dark:text-slate-400">
+              Live counts for installs, events, MCP queries, and tracked agents.
+            </p>
+          </div>
+          <button
+            onClick={toggleDarkMode}
+            className="self-start inline-flex items-center gap-2 rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900"
+          >
+            {isDarkMode ? 'Switch to Light' : 'Switch to Dark'}
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${isDarkMode ? 'bg-yellow-400' : 'bg-slate-800'}`}
             />
-            <Route path="/agents/:agentName" element={<AgentDetail />} />
-            <Route
-              path="/metrics"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <MetricsDashboard />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/analytics"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <AnalyticsDashboard />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/analytics/engagement"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <EngagementAnalytics />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/analytics/users"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <UserAnalytics />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/analytics/features"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <FeatureAdoption />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/analytics/retention"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <RetentionGrowth />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/analytics/infrastructure"
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <InfrastructureInsights />
-                </Suspense>
-              }
-            />
-          </Routes>
+          </button>
+        </header>
+
+        <main>
+          <AnalyticsDashboard />
         </main>
       </div>
-    </BrowserRouter>
+    </div>
   )
 }
 

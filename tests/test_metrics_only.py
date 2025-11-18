@@ -53,7 +53,7 @@ def main():
     print("\n📋 Step 3: Creating sample metrics...")
     metrics = {
         "installation_id": installation_id,
-        "sdk_version": "0.1.0",
+        "sdk_version": "0.1.1",
         "user_email": email,
         "agents_tracked": 3,
         "events_today": 75,

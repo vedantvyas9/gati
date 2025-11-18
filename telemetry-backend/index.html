@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GATI Telemetry Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
@@ -23,66 +22,9 @@
             background-color: #1e2d5c;
         }
 
-        .navy-light {
-            background-color: #1e40af;
-        }
-
-        .card {
-            background-color: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .tab-active {
-            border-bottom: 2px solid #3b82f6;
-            color: #60a5fa;
-        }
-
-        .tab-inactive {
-            border-bottom: 2px solid transparent;
-            color: #94a3b8;
-        }
-
-        .tab-inactive:hover {
-            color: #cbd5e1;
-        }
-
         .stat-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .time-filter-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .time-filter-btn.active {
-            background-color: #1e40af;
-            color: white;
-            border-color: #3b82f6;
-        }
-
-        .time-filter-btn:not(.active) {
-            background-color: #1e293b;
-            color: #94a3b8;
-        }
-
-        .time-filter-btn:not(.active):hover {
-            background-color: #334155;
-            color: #cbd5e1;
-        }
-
-        .chart-container {
-            background-color: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 24px;
         }
 
         .loading-spinner {
@@ -117,22 +59,14 @@
             color: #60a5fa;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .badge-purple {
+            background-color: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
+        .badge-orange {
+            background-color: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
         }
     </style>
 </head>
@@ -149,50 +83,20 @@
                 </div>
                 <nav class="flex items-center space-x-6">
                     <a href="#" class="text-white font-medium">Telemetry</a>
-                    <div class="w-5 h-5 text-slate-400">
-                        <svg fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
-                        </svg>
-                    </div>
+                    <button onclick="loadDashboard()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                        Refresh
+                    </button>
                 </nav>
             </div>
         </div>
     </header>
 
-    <div class="container mx-auto px-6 py-6">
+    <div class="container mx-auto px-6 py-8">
         <!-- Main Header -->
-        <div class="mb-6">
+        <div class="mb-8">
             <h2 class="text-3xl font-serif font-bold mb-2">Telemetry Dashboard</h2>
-            <p class="text-slate-400">Real-time analytics and usage metrics</p>
-        </div>
-
-        <!-- Time Period Filters -->
-        <div class="mb-6 flex items-center space-x-3">
-            <span class="text-slate-400 text-sm">Time Period:</span>
-            <div class="flex space-x-2">
-                <button class="time-filter-btn active" data-period="hour" onclick="setTimePeriod('hour')">Hour</button>
-                <button class="time-filter-btn" data-period="day" onclick="setTimePeriod('day')">Day</button>
-                <button class="time-filter-btn" data-period="week" onclick="setTimePeriod('week')">Week</button>
-                <button class="time-filter-btn" data-period="month" onclick="setTimePeriod('month')">Month</button>
-            </div>
-            <div class="ml-auto flex items-center space-x-2">
-                <span class="text-slate-400 text-sm" id="last-updated"></span>
-                <button onclick="loadDashboard()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
-                    🔄 Refresh
-                </button>
-            </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="border-b border-slate-700 mb-6">
-            <nav class="flex space-x-8">
-                <button id="tab-overview" class="tab-active py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('overview')">
-                    Overview
-                </button>
-                <button id="tab-analytics" class="tab-inactive py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('analytics')">
-                    Analytics
-                </button>
-            </nav>
+            <p class="text-slate-400">Total metrics across all time</p>
+            <p class="text-slate-500 text-sm mt-1" id="last-updated"></p>
         </div>
 
         <!-- Loading State -->
@@ -210,463 +114,50 @@
 
         <!-- Dashboard Content -->
         <div id="dashboard" class="hidden">
-            <!-- Overview Tab -->
-            <div id="content-overview" class="tab-content">
-                <!-- Stat Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                    <div class="stat-card rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">Total Users</h3>
-                            <span class="badge badge-info">Active</span>
-                        </div>
-                        <p class="text-3xl font-bold text-white" id="stat-users">0</p>
-                        <p class="text-xs text-slate-400 mt-2">Authenticated users</p>
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="stat-card rounded-lg p-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">Total Installations</h3>
+                        <span class="badge badge-success">Total</span>
                     </div>
-
-                    <div class="stat-card rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">Installations</h3>
-                            <span class="badge badge-success">Growing</span>
-                        </div>
-                        <p class="text-3xl font-bold text-white" id="stat-installations">0</p>
-                        <p class="text-xs text-slate-400 mt-2">Unique installations</p>
-                    </div>
-
-                    <div class="stat-card rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">Total Events</h3>
-                            <span class="badge badge-info">Tracked</span>
-                        </div>
-                        <p class="text-3xl font-bold text-white" id="stat-events">0</p>
-                        <p class="text-xs text-slate-400 mt-2">Lifetime events</p>
-                    </div>
-
-                    <div class="stat-card rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">MCP Queries</h3>
-                            <span class="badge badge-info">Queries</span>
-                        </div>
-                        <p class="text-3xl font-bold text-white" id="stat-mcp">0</p>
-                        <p class="text-xs text-slate-400 mt-2">Total MCP queries</p>
-                    </div>
+                    <p class="text-4xl font-bold text-white" id="stat-installations">0</p>
+                    <p class="text-xs text-slate-400 mt-3">Unique installations</p>
                 </div>
 
-                <!-- Main Chart -->
-                <div class="chart-container mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold">Users & Events Over Time</h3>
-                        <div class="flex items-center space-x-4 text-sm">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                <span class="text-slate-400">Users</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
-                                <span class="text-slate-400">Events</span>
-                            </div>
-                        </div>
+                <div class="stat-card rounded-lg p-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">Total Agents</h3>
+                        <span class="badge badge-info">Agents</span>
                     </div>
-                    <div style="height: 400px; position: relative;">
-                        <canvas id="timeSeriesChart"></canvas>
-                    </div>
+                    <p class="text-4xl font-bold text-white" id="stat-agents">0</p>
+                    <p class="text-xs text-slate-400 mt-3">Unique agents/users</p>
                 </div>
 
-                <!-- Secondary Metrics -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- SDK Versions -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold mb-4">SDK Version Distribution</h3>
-                        <div style="height: 300px; position: relative;">
-                            <canvas id="versionChart"></canvas>
-                        </div>
+                <div class="stat-card rounded-lg p-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">Events Recorded</h3>
+                        <span class="badge badge-purple">Events</span>
                     </div>
-
-                    <!-- Framework Usage -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold mb-4">Framework Usage</h3>
-                        <div style="height: 300px; position: relative;">
-                            <canvas id="frameworkChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics Tab -->
-            <div id="content-analytics" class="tab-content hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Growth Metrics -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold mb-4">User Growth</h3>
-                        <div style="height: 300px; position: relative;">
-                            <canvas id="growthChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Event Distribution -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold mb-4">Event Distribution</h3>
-                        <div style="height: 300px; position: relative;">
-                            <canvas id="distributionChart"></canvas>
-                        </div>
-                    </div>
+                    <p class="text-4xl font-bold text-white" id="stat-events">0</p>
+                    <p class="text-xs text-slate-400 mt-3">Total events tracked</p>
                 </div>
 
-                <!-- Detailed Analytics Table -->
-                <div class="chart-container mt-6">
-                    <h3 class="text-lg font-semibold mb-4">Detailed Metrics</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Date</th>
-                                    <th class="text-right py-3 px-4 text-slate-400 font-medium">Users</th>
-                                    <th class="text-right py-3 px-4 text-slate-400 font-medium">Installations</th>
-                                    <th class="text-right py-3 px-4 text-slate-400 font-medium">Events</th>
-                                </tr>
-                            </thead>
-                            <tbody id="metrics-table-body">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
+                <div class="stat-card rounded-lg p-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wide">MCP Queries</h3>
+                        <span class="badge badge-orange">Queries</span>
                     </div>
+                    <p class="text-4xl font-bold text-white" id="stat-mcp">0</p>
+                    <p class="text-xs text-slate-400 mt-3">Total MCP queries</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentTimePeriod = 'day';
-        let currentTab = 'overview';
-        let charts = {};
-
-        function setTimePeriod(period) {
-            currentTimePeriod = period;
-            document.querySelectorAll('.time-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`[data-period="${period}"]`).classList.add('active');
-            loadDashboard();
-        }
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.getElementById('tab-overview').className = tab === 'overview' ? 'tab-active py-4 px-1 border-b-2 font-medium text-sm' : 'tab-inactive py-4 px-1 border-b-2 font-medium text-sm';
-            document.getElementById('tab-analytics').className = tab === 'analytics' ? 'tab-active py-4 px-1 border-b-2 font-medium text-sm' : 'tab-inactive py-4 px-1 border-b-2 font-medium text-sm';
-            document.getElementById('content-overview').classList.toggle('hidden', tab !== 'overview');
-            document.getElementById('content-analytics').classList.toggle('hidden', tab !== 'analytics');
-        }
-
         function formatNumber(num) {
             return new Intl.NumberFormat().format(num);
-        }
-
-        function formatDate(dateStr, period) {
-            const date = new Date(dateStr);
-            switch(period) {
-                case 'hour':
-                    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                case 'day':
-                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                case 'week':
-                    return `Week of ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-                case 'month':
-                    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                default:
-                    return date.toLocaleDateString();
-            }
-        }
-
-        function destroyChart(name) {
-            if (charts[name]) {
-                charts[name].destroy();
-                charts[name] = null;
-            }
-        }
-
-        function createTimeSeriesChart(data) {
-            destroyChart('timeSeries');
-            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
-            const labels = data.map(d => formatDate(d.date, currentTimePeriod));
-            
-            charts.timeSeries = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Users',
-                            data: data.map(d => d.users),
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Events',
-                            data: data.map(d => d.events),
-                            borderColor: 'rgb(168, 85, 247)',
-                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: '#cbd5e1'
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f0f4ff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            ticks: { color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            title: {
-                                display: true,
-                                text: 'Users',
-                                color: '#94a3b8'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            ticks: { color: '#94a3b8' },
-                            grid: { drawOnChartArea: false },
-                            title: {
-                                display: true,
-                                text: 'Events',
-                                color: '#94a3b8'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createVersionChart(data) {
-            destroyChart('version');
-            const ctx = document.getElementById('versionChart').getContext('2d');
-            const versions = Object.keys(data);
-            const counts = Object.values(data);
-            
-            charts.version = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: versions,
-                    datasets: [{
-                        data: counts,
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(168, 85, 247, 0.8)',
-                            'rgba(34, 197, 94, 0.8)',
-                            'rgba(251, 146, 60, 0.8)',
-                            'rgba(239, 68, 68, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgb(59, 130, 246)',
-                            'rgb(168, 85, 247)',
-                            'rgb(34, 197, 94)',
-                            'rgb(251, 146, 60)',
-                            'rgb(239, 68, 68)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: '#cbd5e1' }
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f0f4ff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1
-                        }
-                    }
-                }
-            });
-        }
-
-        function createFrameworkChart(data) {
-            destroyChart('framework');
-            const ctx = document.getElementById('frameworkChart').getContext('2d');
-            const frameworks = Object.keys(data);
-            const counts = Object.values(data);
-            
-            charts.framework = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: frameworks,
-                    datasets: [{
-                        label: 'Usage',
-                        data: counts,
-                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                        borderColor: 'rgb(59, 130, 246)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f0f4ff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        },
-                        y: {
-                            ticks: { color: '#94a3b8', beginAtZero: true },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createGrowthChart(data) {
-            destroyChart('growth');
-            const ctx = document.getElementById('growthChart').getContext('2d');
-            const labels = data.map(d => formatDate(d.date, currentTimePeriod));
-            
-            charts.growth = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'User Growth',
-                        data: data.map(d => d.users),
-                        borderColor: 'rgb(34, 197, 94)',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#cbd5e1' }
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f0f4ff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        },
-                        y: {
-                            ticks: { color: '#94a3b8', beginAtZero: true },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createDistributionChart(data) {
-            destroyChart('distribution');
-            const ctx = document.getElementById('distributionChart').getContext('2d');
-            const labels = data.map(d => formatDate(d.date, currentTimePeriod));
-            
-            charts.distribution = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Events',
-                        data: data.map(d => d.events),
-                        backgroundColor: 'rgba(168, 85, 247, 0.8)',
-                        borderColor: 'rgb(168, 85, 247)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f0f4ff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#94a3b8' },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        },
-                        y: {
-                            ticks: { color: '#94a3b8', beginAtZero: true },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateMetricsTable(data) {
-            const tbody = document.getElementById('metrics-table-body');
-            tbody.innerHTML = data.map(row => `
-                <tr class="border-b border-slate-700 hover:bg-slate-800/50">
-                    <td class="py-3 px-4">${formatDate(row.date, currentTimePeriod)}</td>
-                    <td class="py-3 px-4 text-right">${row.users}</td>
-                    <td class="py-3 px-4 text-right">${row.installations}</td>
-                    <td class="py-3 px-4 text-right">${formatNumber(row.events)}</td>
-                </tr>
-            `).join('');
         }
 
         async function loadDashboard() {
@@ -681,8 +172,8 @@
             dashboard.classList.add('hidden');
 
             try {
-                const response = await fetch(`/api/stats?period=${currentTimePeriod}`);
-                
+                const response = await fetch('/api/stats');
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -690,26 +181,10 @@
                 const data = await response.json();
 
                 // Update stat cards
-                document.getElementById('stat-users').textContent = formatNumber(data.unique_users || 0);
                 document.getElementById('stat-installations').textContent = formatNumber(data.unique_installations || 0);
+                document.getElementById('stat-agents').textContent = formatNumber(data.unique_users || 0);
                 document.getElementById('stat-events').textContent = formatNumber(data.total_events_tracked || 0);
                 document.getElementById('stat-mcp').textContent = formatNumber(data.total_mcp_queries || 0);
-
-                // Create charts
-                if (data.time_series && data.time_series.length > 0) {
-                    createTimeSeriesChart(data.time_series);
-                    createGrowthChart(data.time_series);
-                    createDistributionChart(data.time_series);
-                    updateMetricsTable(data.time_series);
-                }
-
-                if (data.sdk_versions && Object.keys(data.sdk_versions).length > 0) {
-                    createVersionChart(data.sdk_versions);
-                }
-
-                if (data.frameworks_used && Object.keys(data.frameworks_used).length > 0) {
-                    createFrameworkChart(data.frameworks_used);
-                }
 
                 loading.classList.add('hidden');
                 dashboard.classList.remove('hidden');

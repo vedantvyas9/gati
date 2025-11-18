@@ -1,8 +1,21 @@
 # GATI SDK
 
-**Local-First Observability Platform for AI Agents**
+**Local-First Intelligent Observability Platform for AI Agents**
 
-GATI is a comprehensive observability platform that helps you understand, debug, and optimize your AI agents. Track every LLM call, tool usage, and state change with minimal code changes.
+GATI is a comprehensive observability platform that helps you understand, debug, and optimize your AI agents. Track every LLM call, tool usage, and state change with only 2 lines of code.
+---
+
+## Quick Start (2 Steps)
+
+```bash
+# 1. Install
+pip install gati
+
+# 2. Start local services (optional - for dashboard)
+gati start
+```
+
+That's it! No authentication required. Start tracking immediately.
 
 ---
 
@@ -11,105 +24,42 @@ GATI is a comprehensive observability platform that helps you understand, debug,
 - **Zero-Code Instrumentation** - Automatic tracking for LangChain and LangGraph
 - **Local-First** - All trace data stays on your machine
 - **Real-Time Cost Tracking** - Monitor LLM API costs and token usage
-- **Visual Dashboard** - Beautiful React interface for exploring traces
-- **AI Assistant Integration** - Query traces using Claude Desktop or GitHub Copilot via MCP
-- **Privacy-Focused** - Trace data never leaves your machine; only anonymous usage metrics are collected
+- **Visual Dashboard** - React interface for exploring traces
+- **AI Assistant Integration** - Query traces using Claude Desktop, GitHub Copilot or Cursor via MCP
+- **Privacy-Focused** - All development traces stored locally; only anonymous usage metrics are collected
+- **Instant Setup** - No authentication barriers, just install and go
 
 ---
 
-## Important: Usage Agreement & Authentication
+## Installation & Setup
 
-> **⚠️ Before using GATI SDK, you must authenticate and agree to anonymous usage metrics collection.**
-
-### What Data is Collected
-
-When you use GATI SDK, the following anonymous metrics are automatically collected and sent to our telemetry backend:
-
-**Metrics Collected:**
-
-- Installation ID (anonymous UUID - no personal information)
-- SDK version
-- Framework detection (langchain/langgraph/custom)
-- Number of agents tracked (count only)
-- Number of events tracked (daily and lifetime counts)
-- MCP query usage (count only)
-
-**What is NOT Collected:**
-
-- ❌ LLM prompts or completions
-- ❌ Tool inputs or outputs
-- ❌ API keys or credentials
-- ❌ Your code or business logic
-- ❌ IP addresses or device information
-- ❌ Any personally identifiable information (except your verified email)
-
-### Your Trace Data Stays Local
-
-**All agent execution traces remain on your machine:**
-
-- ✅ Stored in local SQLite database
-- ✅ NOT sent to any external service
-- ✅ Complete control and ownership
-- ✅ View via local dashboard at `http://localhost:3000`
-
-### Required: Authentication
-
-To use the GATI SDK, you must first authenticate with your email:
-
-```bash
-# 1. Request verification code
-gati auth
-# Enter your email when prompted
-
-# 2. Check your email and verify
-gati auth verify <code-from-email>
-```
-
-**Why Authentication is Required:**
-
-- Ensures responsible usage of the SDK
-- Allows us to improve the product based on aggregated metrics
-- Provides support channel if needed
-
-**By authenticating, you agree that:**
-
-- Anonymous usage metrics (as listed above) will be collected
-- Your email will be stored for authentication purposes only
-- All your trace data remains local on your machine
-
----
-
-## Quick Start
-
-### 1. Installation
+### 1. Install the SDK
 
 ```bash
 pip install gati
 ```
 
-### 2. Authentication (Required)
+### 2. Start Local Services (Optional)
+
+Only needed if you want to view the dashboard or use MCP integration:
 
 ```bash
-# Authenticate before first use
-gati auth
-# Follow the prompts to verify your email
+# Start backend, dashboard, and MCP server
+gati start
+
+# Services will be available at:
+# - Backend:   http://localhost:8000
+# - Dashboard: http://localhost:3000
 ```
 
-### 3. Start the Backend
+The first time you run `gati start`, Docker will build the services from GitHub (one-time setup, ~2-3 minutes).
 
+**Stop services when done:**
 ```bash
-# Using Docker (recommended)
-docker-compose up -d
-
-# Or manually
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+gati stop
 ```
 
-### 4. Instrument Your Code
-
-#### LangChain (Auto-instrumentation)
+### 3. Use the SDK
 
 ```python
 from gati import observe
@@ -117,25 +67,43 @@ from gati import observe
 # Initialize once at the start of your application
 observe.init(name="my_agent")
 
-# Your existing LangChain code works automatically!
-from langchain.chat_models import ChatOpenAI
+# Your existing LangChain/LangGraph code works automatically!
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-4")
+response = llm.invoke("Hello!")  # ← Automatically tracked!
+```
+
+---
+
+## Usage Examples
+
+### LangChain (Auto-instrumentation)
+
+```python
+from gati import observe
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 
+# Initialize - that's it! No authentication needed
+observe.init(name="my_agent")
+
+# All LangChain calls are automatically tracked
 llm = ChatOpenAI(model="gpt-4")
 prompt = ChatPromptTemplate.from_template("Tell me a joke about {topic}")
 chain = prompt | llm
 
-# This will be automatically tracked
+# Automatically tracked with full telemetry
 result = chain.invoke({"topic": "programming"})
 ```
 
-#### LangGraph (Auto-instrumentation)
+### LangGraph (Auto-instrumentation)
 
 ```python
 from gati import observe
 from langgraph.graph import StateGraph
 
-observe.init(name="my_agent")
+observe.init(name="my_research_agent")
 
 # Your LangGraph code is automatically instrumented
 graph = StateGraph(AgentState)
@@ -147,7 +115,7 @@ app = graph.compile()  # Automatically wrapped!
 result = app.invoke(initial_state)
 ```
 
-#### Custom Code (Decorators)
+### Custom Code (Decorators)
 
 ```python
 from gati import observe
@@ -155,7 +123,7 @@ from gati.decorators import track_agent, track_tool
 
 observe.init(name="my_agent")
 
-@track_agent(name="MyAgent")
+@track_agent(name="ResearchAgent")
 def my_agent(query: str):
     result = research(query)
     return process(result)
@@ -166,238 +134,374 @@ def research(query: str):
     return results
 ```
 
-### 5. View the Dashboard
+---
 
-Open [http://localhost:3000](http://localhost:3000) to see your traces, costs, and execution timelines.
+## View Your Traces
+
+![GATI dashboard showing a full execution trace](./reference_trace.png)
+
+### Local Dashboard
+
+Open your browser to [http://localhost:3000](http://localhost:3000) to see:
+
+- All agent runs with full execution traces
+- LLM calls with prompts, responses, and token usage
+- Tool invocations with inputs and outputs
+- Cost tracking and performance metrics
+- Search and filter capabilities
+- Timeline visualization
+
+**All data is stored locally in SQLite** - nothing leaves your machine except anonymous usage metrics.
 
 ---
 
-## Architecture
+## MCP Server Integration
 
-```
-┌─────────────────────┐
-│   Your Agent        │
-│  (LangChain/        │
-│   LangGraph)        │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐      ┌──────────────┐      ┌──────────────┐
-│   GATI SDK          │─────▶│   Backend    │─────▶│  Dashboard   │
-│   (Python)          │      │  (FastAPI)   │      │   (React)    │
-└─────────────────────┘      └──────┬───────┘      └──────────────┘
-                                     │
-                                     ▼
-                              ┌──────────────┐
-                              │  MCP Server  │
-                              │ (AI Assist)  │
-                              └──────────────┘
-```
+Connect GATI to Claude Desktop or GitHub Copilot to query your traces using natural language.
+
+### What is MCP?
+
+The Model Context Protocol (MCP) allows AI assistants to access your local trace data and answer questions about your agent's behavior.
+
+### Setup for Claude Desktop
+
+1. **Start the GATI services** (if not already running):
+   ```bash
+   gati start
+   ```
+
+2. **Open your Claude Desktop configuration file**:
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+3. **Add the GATI MCP server configuration**:
+   ```json
+   {
+     "mcpServers": {
+       "gati": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "gati_mcp_server",
+           "node",
+           "/app/dist/index.js"
+         ]
+       }
+     }
+   }
+   ```
+
+4. **Restart Claude Desktop**
+
+5. **Start asking questions**:
+   - "Show me all my agent runs from today"
+   - "What was the cost of the last run?"
+   - "Compare the last 3 runs"
+   - "Why was run X slow?"
+   - "Which agent used the most tokens?"
+
+### Setup for GitHub Copilot (VS Code)
+
+1. **Start the GATI services**:
+   ```bash
+   gati start
+   ```
+
+2. **Open your MCP server configuration file**:
+   - **VS Code**: `mcp.json` or `mcp_config.json` in your project root
+
+3. **Add the GATI MCP server configuration**:
+   ```json
+   {
+     "mcp.servers": {
+       "gati": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "gati_mcp_server",
+           "node",
+           "/app/dist/index.js"
+         ]
+       }
+     }
+   }
+   ```
+
+4. **Save and reload** your client's MCP extension or plugin
+
+5. **Ask Copilot about your traces**:
+   - Type in chat: "@gati show me all agent runs"
+   - "@gati what was the average cost today?"
+   - "@gati find runs with errors"
+
+### MCP Server Features
+
+The GATI MCP server provides these tools:
+- `list_agents` - List all tracked agents
+- `get_agent_stats` - Get statistics for a specific agent
+- `get_run_details` - Get detailed information about a run
+- `query_events` - Query events with filters
+- `get_recent_runs` - Get recent agent runs
+- `search_runs` - Search runs by criteria
+- `get_cost_summary` - Get cost breakdown
+- `compare_runs` - Compare multiple runs
+
+**All MCP queries read from your local database** - no data is sent externally.
 
 ---
 
-## Components
+## Privacy & Data Collection
 
-- [**SDK**](sdk/README.md) - Python instrumentation library
-- [**Backend**](backend/README.md) - FastAPI server with SQLite storage
-- [**Dashboard**](dashboard/README.md) - React visualization interface
-- [**MCP Server**](mcp-server/README.md) - Model Context Protocol integration
-- [**Telemetry Backend**](telemetry-backend/README.md) - Optional anonymous usage analytics
-- [**Demo**](demo/README.md) - Example implementations
-- [**Tests**](tests/README.md) - Test suite
+### What Stays Local (100%)
 
----
+All development traces remain on your machine:
 
-## Configuration
+- LLM prompts and completions
+- Tool inputs and outputs
+- Agent execution traces
+- API keys and credentials
+- Your code and business logic
+- Cost and token usage details
 
-Create a `.env` file in the root directory:
+**Storage:** Local SQLite database in Docker volume `gati_data:/app/data/gati.db`
 
-```bash
-# Copy the example configuration
-cp .env.example .env
+### Anonymous Usage Metrics
+
+**By using GATI SDK, anonymous usage metrics are automatically collected:**
+
+**What is collected:**
+- Installation ID (anonymous UUID - no personal info)
+- SDK version (e.g., "0.1.1")
+- Framework detection (e.g., "langchain", "langgraph")
+- Event counts (daily and lifetime)
+- Agent counts (how many agents tracked)
+- MCP query counts
+- Timestamp
+
+**What is NOT collected:**
+- LLM prompts or completions
+- Tool inputs or outputs
+- API keys or credentials
+- Your code or business logic
+- IP addresses or device information
+- Any personally identifiable information
+
+**Telemetry endpoint:** `https://gati-mvp-telemetry.vercel.app/api/metrics`
+
+**Opt-out anytime:**
+```python
+# Disable telemetry in your code
+observe.init(name="my_agent", telemetry=False)
 ```
 
-Key configuration options:
+**Why we collect metrics:**
+- Understand which frameworks are popular
+- Track SDK adoption and usage patterns
+- Improve reliability and performance
+- Prioritize features and bug fixes
 
-```env
-# Backend
-DATABASE_URL=sqlite+aiosqlite:///./gati.db
-BACKEND_PORT=8000
-TZ=America/Chicago  # Your timezone for display
-
-# Dashboard
-DASHBOARD_PORT=3000
-VITE_BACKEND_URL=http://localhost:8000
-
-# Telemetry (required - part of usage agreement)
-GATI_TELEMETRY_URL=https://gati-mvp-telemetry.vercel.app/api/metrics
-```
+**Transparency:** All telemetry code is open source and readable in `gati/core/telemetry.py`.
 
 ---
 
 ## CLI Commands
 
 ```bash
-# Authentication (REQUIRED before using SDK)
-gati auth                    # Request verification code via email
-gati auth verify <code>      # Verify code and activate SDK
-gati auth status             # Check authentication status
+# Start local services (backend, dashboard, MCP server)
+gati start              # Run in background (detached mode)
+gati start -f           # Run in foreground with logs visible
 
-# Telemetry status
-gati telemetry status        # Check telemetry status
+# Stop services
+gati stop               # Stop all containers
 
-# View help
-gati --help
+# Check status
+gati status             # Show running services
+
+# View logs
+gati logs               # Show all logs
+gati logs -f            # Follow logs (live tail)
+gati logs -f backend    # Follow specific service logs
+
+# Help
+gati --help             # Show all commands
 ```
 
 ---
 
-## MCP Integration
+## Configuration
 
-Connect GATI to Claude Desktop or GitHub Copilot to query traces using natural language:
-
-### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "gati": {
-      "command": "node",
-      "args": ["/path/to/gati-sdk/mcp-server/dist/index.js"],
-      "env": {
-        "DATABASE_PATH": "/path/to/gati-sdk/gati.db"
-      }
-    }
-  }
-}
-```
-
-### GitHub Copilot (VS Code)
-
-Add to VS Code settings:
-
-```json
-{
-  "github.copilot.mcpServers": {
-    "gati": {
-      "command": "node",
-      "args": ["/path/to/gati-sdk/mcp-server/dist/index.js"],
-      "env": {
-        "DATABASE_PATH": "/path/to/gati-sdk/gati.db"
-      }
-    }
-  }
-}
-```
-
-Then ask questions like:
-
-- "Show me all agents"
-- "What was the cost of the last run?"
-- "Compare the last 3 runs"
-- "Why was run X slow?"
-
----
-
-## Development
-
-### Prerequisites
-
-- Python 3.9+
-- Node.js 18+
-- Docker & Docker Compose (optional but recommended)
-
-### Setup
+### Environment Variables
 
 ```bash
-# Clone the repository
-git clone https://github.com/gati/gati-sdk.git
-cd gati-sdk
+# Backend URL (default: http://localhost:8000)
+export GATI_BACKEND_URL=http://localhost:8000
 
-# Install SDK in development mode
-cd sdk
-pip install -e .
+# Batch size for event sending (default: 10)
+export GATI_BATCH_SIZE=10
 
-# Start backend
-cd ../backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-
-# Start dashboard (new terminal)
-cd ../dashboard
-npm install
-npm run dev
-
-# Build MCP server (new terminal)
-cd ../mcp-server
-npm install
-npm run build
+# Flush interval in seconds (default: 1.0)
+export GATI_FLUSH_INTERVAL=1.0
 ```
 
-### Running Tests
+### In Code Configuration
 
-```bash
-cd tests
-pytest
+```python
+from gati import observe
+
+observe.init(
+    name="my_agent",
+    backend_url="http://localhost:8000",  # Custom backend
+    batch_size=20,                        # Larger batches
+    flush_interval=2.0,                   # Flush every 2 seconds
+    telemetry=False,                      # Disable telemetry
+)
 ```
 
 ---
 
-## Examples
+## Architecture
 
-See the [demo](demo/README.md) folder for complete examples:
+**Flow at a glance**
 
-- LangChain integration
-- LangGraph state machines
-- Custom decorators
-- Multi-agent systems
-- Tool usage tracking
+1. **Your code**
+   - `from gati import observe` → `observe.init(name="my_agent")`
+   - LangChain/LangGraph/custom code emits events to `http://localhost:8000/api/events`.
+
+2. **Local services (`gati start`)**
+   - **Backend (FastAPI, :8000)**: receives events, persists them, exposes REST/WebSocket APIs.
+   - **Dashboard (React, :3000)**: visualizes traces by calling the backend.
+   - **MCP server (TypeScript)**: read-only layer on top of the same database for Claude/Copilot.
+
+3. **Storage footprint**
+   - SQLite DB lives in the Docker volume `gati_data:/app/data/gati.db`.
+   - Telemetry counters stored at `~/.gati/metrics.json`.
+
+4. **Telemetry (optional & anonymous)**
+   - Only installation UUID, SDK version, framework flags, and aggregate counts are sent to
+     `https://gati-mvp-telemetry.vercel.app/api/metrics`.
+   - No prompts, completions, API keys, or business logic leave your machine.
+
+---
+
+
+
+### Custom Event Tracking
+
+```python
+from gati import observe
+from gati.core.event import Event
+
+observe.init(name="my_agent")
+
+# Create custom events
+event = Event(
+    event_type="custom_metric",
+    data={"metric_name": "cache_hit_rate", "value": 0.85}
+)
+
+observe.track_event(event)
+```
+
+### Framework-Specific Callbacks
+
+If auto-instrumentation doesn't work:
+
+```python
+from gati import observe
+
+observe.init(name="my_agent")
+
+# LangChain: Pass callbacks manually
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model="gpt-4",
+    callbacks=observe.get_callbacks()
+)
+```
 
 ---
 
 ## Troubleshooting
 
-### Backend not connecting
+### SDK Not Tracking Events
 
-```bash
+```python
 # Check if backend is running
-curl http://localhost:8000/health
+import requests
+requests.get("http://localhost:8000/health")
+# Should return: {"status": "healthy"}
 
-# Check logs
-docker-compose logs backend
+# Enable debug logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
 ```
 
-### Dashboard not showing data
-
-1. Verify backend URL in `.env`: `VITE_BACKEND_URL=http://localhost:8000`
-2. Check browser console for errors
-3. Ensure CORS is enabled (should be by default)
-
-### Telemetry authentication issues
+### Docker Services Not Starting
 
 ```bash
-# Check authentication status
-gati auth status
+# Check Docker is running
+docker ps
 
-# Re-authenticate
-gati auth
+# View logs for errors
+gati logs
+
+# Rebuild containers (if needed)
+docker-compose down
+docker-compose up --build -d
+```
+
+### Dashboard Not Showing Data
+
+1. Verify backend is running: `curl http://localhost:8000/health`
+2. Check browser console for errors (F12)
+3. Verify events are being sent: Check `gati logs backend`
+4. Restart services: `gati stop && gati start`
+
+### MCP Server Not Connecting
+
+```bash
+# Check MCP container is running
+docker ps | grep gati_mcp_server
+
+# View MCP logs
+docker logs gati_mcp_server
+
+# Restart MCP server
+docker restart gati_mcp_server
+```
+
+### Telemetry Issues
+
+```python
+# Disable telemetry if causing issues
+observe.init(name="my_agent", telemetry=False)
 ```
 
 ---
 
-## License
+## 📝 License
 
-MIT License - see [LICENSE](LICENSE) file for details
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## Roadmap
+## 📚 Documentation
 
-- [ ] Support for more LLM frameworks (Haystack, AutoGen)
-- [ ] Advanced cost optimization suggestions
-- [ ] Custom metric definitions
-- [ ] Team collaboration features
-- [ ] Export to common formats (JSON, CSV, Parquet)
+- [SDK Documentation](sdk/README.md)
+- [Backend API Reference](backend/README.md)
+- [Dashboard Guide](dashboard/README.md)
+- [MCP Server Setup](mcp-server/README.md)
+- [Examples & Tutorials](demo/README.md)
 
+---
+
+## 💬 Support
+
+Fill out this 2 minute google form: https://docs.google.com/forms/d/e/1FAIpQLSfGTXR1iyeSWfKGXOa7xhyjEW08gowEFwvgukI_v90qQ3Qpjg/viewform?usp=dialog
+
+
+---

@@ -43,7 +43,8 @@ module.exports = async function handler(request, response) {
     const summaryResult = await pool.query(`
       SELECT COUNT(DISTINCT installation_id) as total_installations,
              COALESCE(SUM(lifetime_events), 0) as total_events,
-             COALESCE(SUM(agents_tracked), 0) as total_agents
+             COALESCE(SUM(agents_tracked), 0) as total_agents,
+             COALESCE(SUM(mcp_queries), 0) as total_mcp_queries
       FROM public.gati_metrics
     `);
     const summaryRow = summaryResult.rows[0];
@@ -175,6 +176,7 @@ module.exports = async function handler(request, response) {
         total_users: totalUsers,
         total_events: parseInt(summaryRow.total_events || 0),
         total_agents: parseInt(summaryRow.total_agents || 0),
+        total_mcp_queries: parseInt(summaryRow.total_mcp_queries || 0),
       },
       range: {
         days: days > 0 ? days : null,

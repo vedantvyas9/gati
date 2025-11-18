@@ -30,6 +30,7 @@ export type RunResponse = Run
 
 export interface Event {
   event_id: string
+  run_id?: string
   run_name: string
   agent_name: string
   event_type: string

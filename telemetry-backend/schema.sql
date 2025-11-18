@@ -92,3 +92,4 @@ CREATE TABLE public.gati_verification_codes (
 -- Indexes for gati_verification_codes
 CREATE INDEX IF NOT EXISTS idx_verification_expires
   ON public.gati_verification_codes USING btree (expires_at) TABLESPACE pg_default;
+

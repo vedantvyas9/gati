@@ -19,7 +19,7 @@ import re
 version_file = Path(__file__).parent / "sdk" / "gati" / "version.py"
 version_content = version_file.read_text() if version_file.exists() else ""
 version_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', version_content)
-__version__ = version_match.group(1) if version_match else "0.1.0"
+__version__ = version_match.group(1) if version_match else "0.1.1"
 
 # Read the root README
 readme_file = Path(__file__).parent / "README.md"
@@ -31,13 +31,13 @@ setup(
     description="Local-first observability for AI agents. Track LLM calls, tool usage, and agent state.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="GATI Team",
-    author_email="support@gati.dev",
-    url="https://github.com/gati-ai/gati-sdk",
+    author="Vedant Vyas",
+    author_email="vedant.p.vyas@gmail.com",
+    url="https://github.com/vedantvyas9/gati",
     project_urls={
-        "Documentation": "https://docs.gati.dev",
-        "Source": "https://github.com/gati-ai/gati-sdk",
-        "Tracker": "https://github.com/gati-ai/gati-sdk/issues",
+        "Documentation": "https://github.com/vedantvyas9/gati#readme",
+        "Source": "https://github.com/vedantvyas9/gati",
+        "Tracker": "https://github.com/vedantvyas9/gati/issues",
     },
 
     # Package discovery - find all packages in sdk/
@@ -49,6 +49,7 @@ setup(
     package_data={
         "gati": [
             "py.typed",
+            "docker-compose.yml",
         ],
     },
 

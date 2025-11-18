@@ -200,7 +200,7 @@ export default function AgentDetail() {
         isDangerous
         isLoading={isDeletingRun}
         onConfirm={handleConfirmDeleteRun}
-        onCancel={() => setDeleteRunModal({ isOpen: false, runId: null })}
+        onCancel={() => setDeleteRunModal({ isOpen: false, agentName: null, runName: null })}
       />
     </div>
   )

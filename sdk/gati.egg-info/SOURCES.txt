@@ -1,16 +1,15 @@
 .gitignore
 LICENSE
 MANIFEST.in
+PACKAGING.md
 README.md
-check_auth_status.sh
 docker-compose.yml
 init-db.sql.postgres-backup
 pyproject.toml
 setup.py
-test_auth_and_metrics.py
-test_metrics_only.py
 vercel_database_queries.sql
 .claude/settings.local.json
+.github/workflows/docker-build.yml
 .vscode/mcp.json
 backend/.dockerignore
 backend/Dockerfile
@@ -102,8 +101,6 @@ demo/langchain_research_agent.py
 demo/langchain_usage.py
 demo/langgraph_usage.py
 demo/requirements.txt
-dist/gati-0.1.0-py3-none-any.whl
-dist/gati-0.1.0.tar.gz
 mcp-server/.dockerignore
 mcp-server/.gitignore
 mcp-server/Dockerfile
@@ -118,8 +115,6 @@ mcp-server/src/database/queries.ts
 mcp-server/src/telemetry/client.ts
 mcp-server/src/tools/tools.ts
 mcp-server/src/utils/formatters.ts
-scripts/configure-claude-desktop.sh
-scripts/configure-copilot.sh
 sdk/MANIFEST.in
 sdk/README.md
 sdk/pyproject.toml
@@ -127,6 +122,7 @@ sdk/requirements.txt
 sdk/sdk.md
 sdk/setup.py
 sdk/gati/__init__.py
+sdk/gati/docker-compose.yml
 sdk/gati/exceptions.py
 sdk/gati/observe.py
 sdk/gati/version.py

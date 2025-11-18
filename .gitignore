@@ -1,5 +1,8 @@
 .env
 .env.example
+.env.local
+.env.*.local
+
 # SQLite databases
 *.db
 *.db-shm
@@ -29,27 +32,66 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # Virtual environments
 venv/
 env/
 ENV/
+.venv/
 
-# IDEs
+# IDEs and editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
 # OS
 .DS_Store
 Thumbs.db
+.DS_Store?
 
 # Node
 node_modules/
 npm-debug.log
 yarn-error.log
-.vercel
+.pnpm-debug.log
+package-lock.json
+yarn.lock
 
+# Deployment and cloud
+.vercel/
+.vercel
+.vercelignore
+.netlify/
+.serverless/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+test-*.py
+
+# Documentation builds
+docs/_build/
+site/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Supabase
 supabase/

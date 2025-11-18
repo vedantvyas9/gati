@@ -179,7 +179,7 @@ class AuthAndMetricsTest:
 
         metrics = {
             "installation_id": installation_id,
-            "sdk_version": "0.1.0",
+            "sdk_version": "0.1.1",
             "user_email": email,
             "agents_tracked": 2,
             "events_today": 50,
@@ -320,7 +320,7 @@ class AuthAndMetricsTest:
                 if id_file.exists():
                     metrics["installation_id"] = id_file.read_text().strip()
                 if "sdk_version" not in metrics:
-                    metrics["sdk_version"] = "0.1.0"
+                    metrics["sdk_version"] = "0.1.1"
                 if "user_email" not in metrics or not metrics["user_email"]:
                     if self.email_file.exists():
                         metrics["user_email"] = self.email_file.read_text().strip()

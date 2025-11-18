@@ -41,6 +41,32 @@ MODEL_PRICING: Dict[str, Dict[str, float]] = {
 }
 
 
+def _compute_average_pricing() -> Dict[str, float]:
+    """Compute average input/output pricing across all known models."""
+    if not MODEL_PRICING:
+        return {"input": 0.0, "output": 0.0}
+
+    total_input = 0.0
+    total_output = 0.0
+    count = 0
+
+    for pricing in MODEL_PRICING.values():
+        total_input += float(pricing.get("input", 0.0))
+        total_output += float(pricing.get("output", 0.0))
+        count += 1
+
+    if count == 0:
+        return {"input": 0.0, "output": 0.0}
+
+    return {
+        "input": total_input / count,
+        "output": total_output / count,
+    }
+
+
+DEFAULT_MODEL_PRICING: Dict[str, float] = _compute_average_pricing()
+
+
 def normalize_model_name(model: str) -> str:
     """Normalize a raw model name to a canonical key used in MODEL_PRICING.
 
@@ -123,8 +149,13 @@ def calculate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
     canonical = normalize_model_name(model)
     pricing = MODEL_PRICING.get(canonical)
     if not pricing:
-        logger.warning("Unknown model for pricing: %s (normalized: %s)", model, canonical)
-        return 0.0
+        logger.warning(
+            "Unknown model for pricing: %s (normalized: %s). "
+            "Falling back to default average pricing.",
+            model,
+            canonical,
+        )
+        pricing = DEFAULT_MODEL_PRICING
 
     cost_in = (input_tokens_int / 1_000_000.0) * float(pricing.get("input", 0.0))
     cost_out = (output_tokens_int / 1_000_000.0) * float(pricing.get("output", 0.0))
