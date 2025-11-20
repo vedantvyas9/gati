@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gati"
-version = "0.1.0"
+version = "0.0.2"
 description = "Local-first observability for AI agents. Track LLM calls, tool usage, and agent state."
 readme = "README.md"
 requires-python = ">=3.9"

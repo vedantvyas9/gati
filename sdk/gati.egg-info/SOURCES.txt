@@ -65,6 +65,8 @@ dashboard/tailwind.config.js
 dashboard/tsconfig.json
 dashboard/tsconfig.node.json
 dashboard/vite.config.ts
+dashboard/public/.htaccess
+dashboard/public/_redirects
 dashboard/public/index.html
 dashboard/src/App.tsx
 dashboard/src/index.tsx
@@ -174,6 +176,14 @@ sdk/gati/core/config.py
 sdk/gati/core/context.py
 sdk/gati/core/event.py
 sdk/gati/core/telemetry.py
+sdk/gati/dashboard_dist/_redirects
+sdk/gati/dashboard_dist/index.html
+sdk/gati/dashboard_dist/assets/FlowGraph-Fd0xVSp_.css
+sdk/gati/dashboard_dist/assets/FlowGraph-Piyyk8al.js
+sdk/gati/dashboard_dist/assets/MetricsDashboard-B9sXSrEP.js
+sdk/gati/dashboard_dist/assets/index-CAah_nA8.js
+sdk/gati/dashboard_dist/assets/index-CcqHCEzB.css
+sdk/gati/dashboard_dist/assets/string-BbYD24iH.js
 sdk/gati/decorators/__init__.py
 sdk/gati/decorators/track_agent.py
 sdk/gati/decorators/track_context.py

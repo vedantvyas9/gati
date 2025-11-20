@@ -141,16 +141,42 @@ class TelemetryClient:
             config_dir = self._get_config_dir()
             config_dir.mkdir(parents=True, exist_ok=True)
 
+            # Read current file values to avoid overwriting updates from MCP server
+            file_mcp_queries = 0
+            file_agents_tracked = 0
+            try:
+                if metrics_file.exists():
+                    with metrics_file.open("r") as file:
+                        existing_data = json.load(file)
+                        file_mcp_queries = existing_data.get("mcp_queries", 0)
+                        file_agents_tracked = existing_data.get("agents_tracked", 0)
+            except Exception:
+                pass  # If we can't read, use defaults
+
             with self._lock:
+                # Use max to preserve MCP server's updates
+                max_mcp_queries = max(file_mcp_queries, self._metrics["mcp_queries"])
+                # Use max to preserve any updates from other processes
+                max_agents_tracked = max(
+                    file_agents_tracked,
+                    max(len(self._tracked_agents), self._legacy_agent_count)
+                )
+
                 data = {
                     "lifetime_events": self._metrics["lifetime_events"],
                     "events_today": self._metrics["events_today"],
-                    "mcp_queries": self._metrics["mcp_queries"],
+                    "mcp_queries": max_mcp_queries,
                     "frameworks_detected": list(self._metrics["frameworks_detected"]),
                     "last_reset_date": self._metrics["last_reset_date"],
-                    # Only save agents_tracked count, not the list of agent names
-                    "agents_tracked": max(len(self._tracked_agents), self._legacy_agent_count),
+                    "agents_tracked": max_agents_tracked,
                 }
+
+                # Update in-memory values to match what we saved
+                self._metrics["mcp_queries"] = max_mcp_queries
+                self._legacy_agent_count = max(
+                    self._legacy_agent_count,
+                    max_agents_tracked - len(self._tracked_agents)
+                )
 
             with metrics_file.open("w") as file:
                 json.dump(data, file, indent=2)

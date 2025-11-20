@@ -14,7 +14,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
 from gati import observe
-observe.init(name="travel_agent")
+observe.init(name="new_travel_agent")
 # -----------------
 # 1. INITIAL SETUP & STATE DEFINITION
 # -----------------

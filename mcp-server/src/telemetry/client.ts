@@ -134,14 +134,21 @@ export class TelemetryClient {
         // File doesn't exist yet, that's okay - we'll create it
       }
 
+      // Use the maximum of file value and in-memory value to handle race conditions
+      const fileMcpQueries = existingData.mcp_queries || 0;
+      const maxMcpQueries = Math.max(fileMcpQueries, this.metrics.mcp_queries);
+
       // Merge MCP queries into existing data (preserve all other fields)
       const merged = {
         ...existingData,
-        mcp_queries: this.metrics.mcp_queries,
+        mcp_queries: maxMcpQueries,
         last_reset_date: this.metrics.last_reset_date,
       };
 
       await fs.writeFile(this.metricsFile, JSON.stringify(merged, null, 2));
+      
+      // Update in-memory value to match what we saved
+      this.metrics.mcp_queries = maxMcpQueries;
     } catch (error) {
       console.error('[GATI Telemetry] Failed to save metrics:', error);
     }
@@ -154,6 +161,9 @@ export class TelemetryClient {
     if (!this.enabled) {
       return;
     }
+
+    // Reload from disk first to get the latest value (in case Python SDK updated it)
+    await this.loadMetrics();
 
     this.metrics.mcp_queries++;
 
@@ -262,10 +272,10 @@ export async function initTelemetry(
   telemetryClient = new TelemetryClient(enabled, endpoint);
   await telemetryClient.init();
 
-  // Send metrics every 24 hours
+  // Send metrics every 2 minutes
   setInterval(async () => {
     await telemetryClient?.sendMetrics();
-  }, 24 * 60 * 60 * 1000); // 24 hours
+  }, 2 * 60 * 1000); // 2 minutes
 }
 
 /**
