@@ -130,19 +130,7 @@ def enable_auto_injection() -> None:
 
     This should be called once during GATI initialization.
     It wraps the Runnable.invoke() method to automatically inject callbacks.
-    
-    Raises:
-        RuntimeError: If user is not authenticated
     """
-    # MANDATORY AUTHENTICATION CHECK
-    from gati.cli.auth import AuthManager
-    auth = AuthManager()
-    if not auth.is_authenticated():
-        raise RuntimeError(
-            "GATI requires authentication before use. "
-            "Please run 'gati auth' to authenticate with your email address."
-        )
-    
     global _AUTO_INJECTION_ENABLED
 
     if not LANGCHAIN_AVAILABLE:

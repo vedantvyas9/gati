@@ -49,19 +49,7 @@ class FrameworkDetector:
                         auto-detects via `detect_frameworks()`.
         Returns:
             Dict mapping framework name to success boolean.
-        
-        Raises:
-            RuntimeError: If user is not authenticated
         """
-        # MANDATORY AUTHENTICATION CHECK
-        from gati.cli.auth import AuthManager
-        auth = AuthManager()
-        if not auth.is_authenticated():
-            raise RuntimeError(
-                "GATI requires authentication before use. "
-                "Please run 'gati auth' to authenticate with your email address."
-            )
-        
         to_instrument = frameworks if frameworks is not None else self.detect_frameworks()
         results: Dict[str, bool] = {}
 
